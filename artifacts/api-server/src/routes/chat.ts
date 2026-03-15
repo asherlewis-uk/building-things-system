@@ -41,7 +41,10 @@ router.post("/chat", async (req, res) => {
         res.status(400).json({ error: `Unknown provider: ${validProvider}` });
         return;
       }
-      client = createProviderClient(validProvider, customEndpoint);
+      const allowsCustomEndpoint =
+        validProvider === "ollama" || validProvider === "custom";
+      const safeEndpoint = allowsCustomEndpoint ? customEndpoint : undefined;
+      client = createProviderClient(validProvider, safeEndpoint);
       if (!model) {
         resolvedModel = config.defaultModel;
       }

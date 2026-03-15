@@ -38,10 +38,13 @@ router.post("/providers/check", async (req, res) => {
     return;
   }
 
+  const allowsCustomEndpoint = provider === "ollama" || provider === "custom";
+  const safeEndpoint = allowsCustomEndpoint ? customEndpoint : undefined;
+
   try {
     const result = await checkProviderConnectivity(
       provider as ProviderID,
-      customEndpoint
+      safeEndpoint
     );
     res.json(result);
   } catch (err: unknown) {

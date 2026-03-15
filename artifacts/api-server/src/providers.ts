@@ -141,6 +141,8 @@ export function getProviderStatus(config: ProviderConfig): ProviderStatus {
   return "ready";
 }
 
+const ENDPOINT_OVERRIDE_PROVIDERS = new Set<ProviderID>(["ollama", "custom"]);
+
 export function createProviderClient(
   providerId: ProviderID,
   customEndpoint?: string
@@ -150,7 +152,11 @@ export function createProviderClient(
     throw new Error(`Unknown provider: ${providerId}`);
   }
 
-  const baseURL = resolveBaseUrl(config, customEndpoint);
+  const safeEndpoint = ENDPOINT_OVERRIDE_PROVIDERS.has(providerId)
+    ? customEndpoint
+    : undefined;
+
+  const baseURL = resolveBaseUrl(config, safeEndpoint);
   if (!baseURL) {
     throw new Error(`No base URL configured for provider: ${config.name}`);
   }
