@@ -61,9 +61,9 @@ router.post("/chat", async (req, res) => {
     res.flushHeaders();
 
     const tokenLimitParam =
-      validProvider === "ollama" || validProvider === "custom"
-        ? { max_tokens: 8192 }
-        : { max_completion_tokens: 8192 };
+      !validProvider || validProvider === "openai"
+        ? { max_completion_tokens: 8192 }
+        : { max_tokens: 8192 };
 
     const stream = await client.chat.completions.create({
       model: resolvedModel,
