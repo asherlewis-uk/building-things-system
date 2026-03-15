@@ -1,6 +1,12 @@
 import { LinearGradient } from "expo-linear-gradient";
 import React from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import {
+  Pressable,
+  StyleSheet,
+  Text,
+  type StyleProp,
+  type ViewStyle,
+} from "react-native";
 
 import { spectral } from "@/constants/colors";
 
@@ -8,7 +14,7 @@ type Props = {
   onPress: () => void;
   label?: string;
   disabled?: boolean;
-  style?: any;
+  style?: StyleProp<ViewStyle>;
   children?: React.ReactNode;
 };
 

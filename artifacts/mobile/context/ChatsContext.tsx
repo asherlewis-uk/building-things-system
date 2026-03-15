@@ -61,15 +61,17 @@ export function ChatsProvider({ children }: { children: React.ReactNode }) {
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [archivedConversations, setArchivedConversations] = useState<Conversation[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
-  const { syncArchivedIds } = useSettings();
+  const { syncArchivedIds, isLoaded: settingsLoaded } = useSettings();
 
   useEffect(() => {
     loadAll();
   }, []);
 
   useEffect(() => {
-    syncArchivedIds(archivedConversations.map((c) => c.id));
-  }, [archivedConversations, syncArchivedIds]);
+    if (isLoaded && settingsLoaded) {
+      syncArchivedIds(archivedConversations.map((c) => c.id));
+    }
+  }, [archivedConversations, syncArchivedIds, isLoaded, settingsLoaded]);
 
   const loadAll = async () => {
     try {

@@ -74,7 +74,6 @@ export default function ChatScreen() {
       upsertConversation(conv);
       setLocalMessages([greeting]);
     } else {
-      convIdRef.current = conv.id;
       setLocalMessages(conv.messages);
     }
   }, [character]);
