@@ -1,14 +1,11 @@
-import { Feather } from "@expo/vector-icons";
 import React, { useState } from "react";
 import {
   Platform,
-  Pressable,
   ScrollView,
   StyleSheet,
   Text,
   View,
 } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { CharacterCard } from "@/components/CharacterCard";
 import { FeaturedBanner } from "@/components/FeaturedBanner";
@@ -21,11 +18,9 @@ import {
 } from "@/data/characters";
 
 export default function DiscoverScreen() {
-  const { colors, spacing: sp, typography: t, screenInsets } = useTheme();
-  const insets = useSafeAreaInsets();
+  const { colors, spacing: sp, typography: t, screenInsets, layout } = useTheme();
   const [selectedCategory, setSelectedCategory] = useState("All");
 
-  const topPadding = Platform.OS === "web" ? 67 : 0;
   const displayedChars = getCharactersByCategory(selectedCategory);
   const featured = FEATURED_CHARACTERS.slice(0, 3);
 
@@ -36,7 +31,7 @@ export default function DiscoverScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={[
           styles.scrollContent,
-          { paddingTop: Platform.OS === "web" ? topPadding : 0 },
+          { paddingTop: Platform.OS === "web" ? layout.webTopPadding : 0 },
         ]}
       >
         <View
@@ -112,12 +107,12 @@ export default function DiscoverScreen() {
             <CharacterCard
               key={char.id}
               character={char}
-              style={styles.gridItem}
+              style={{ width: layout.gridItemWidth }}
             />
           ))}
         </View>
 
-        <View style={{ height: 100 }} />
+        <View style={{ height: layout.bottomSpacerHeight }} />
       </ScrollView>
     </View>
   );
@@ -157,8 +152,5 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     flexWrap: "wrap",
     gap: 10,
-  },
-  gridItem: {
-    width: "47%",
   },
 });

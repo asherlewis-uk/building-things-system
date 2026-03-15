@@ -25,38 +25,42 @@ function SwipeActions({
   onArchive: () => void;
   onDelete: () => void;
 }) {
-  const { colors, typography: t } = useTheme();
+  const { colors, typography: t, opacity: op } = useTheme();
   return (
     <View style={styles.swipeActions}>
       <Pressable
         onPress={onArchive}
-        style={[styles.swipeBtn, { backgroundColor: colors.tint }]}
+        style={({ pressed }) => [
+          styles.swipeBtn,
+          { backgroundColor: colors.tint, opacity: pressed ? op.pressed : 1 },
+        ]}
         accessibilityLabel="Archive conversation"
         accessibilityRole="button"
       >
-        <Feather name="archive" size={18} color="#fff" />
-        <Text style={[t.caption2, styles.swipeBtnText]}>Archive</Text>
+        <Feather name="archive" size={18} color={colors.onTint} />
+        <Text style={[t.caption2, { color: colors.onTint }]}>Archive</Text>
       </Pressable>
       <Pressable
         onPress={onDelete}
-        style={[styles.swipeBtn, { backgroundColor: colors.destructive }]}
+        style={({ pressed }) => [
+          styles.swipeBtn,
+          { backgroundColor: colors.destructive, opacity: pressed ? op.pressed : 1 },
+        ]}
         accessibilityLabel="Delete conversation"
         accessibilityRole="button"
       >
-        <Feather name="trash-2" size={18} color="#fff" />
-        <Text style={[t.caption2, styles.swipeBtnText]}>Delete</Text>
+        <Feather name="trash-2" size={18} color={colors.onTint} />
+        <Text style={[t.caption2, { color: colors.onTint }]}>Delete</Text>
       </Pressable>
     </View>
   );
 }
 
 export default function ChatsScreen() {
-  const { colors, spacing: sp, typography: t, gradients, screenInsets } =
+  const { colors, spacing: sp, typography: t, gradients, screenInsets, layout, opacity: op } =
     useTheme();
   const { conversations, isLoaded, archiveConversation, deleteConversation } =
     useChats();
-
-  const topPadding = Platform.OS === "web" ? 67 : 0;
 
   const validConversations = conversations.filter((c) => {
     const char = getCharacterById(c.characterId);
@@ -92,7 +96,7 @@ export default function ChatsScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={[
           styles.scrollContent,
-          { paddingTop: Platform.OS === "web" ? topPadding : 0 },
+          { paddingTop: Platform.OS === "web" ? layout.webTopPadding : 0 },
         ]}
       >
         <View
@@ -145,7 +149,10 @@ export default function ChatsScreen() {
             </Text>
             <Pressable
               onPress={() => router.push("/")}
-              style={styles.discoverBtn}
+              style={({ pressed }) => [
+                styles.discoverBtn,
+                { opacity: pressed ? op.pressed : 1 },
+              ]}
               accessibilityLabel="Browse personas"
               accessibilityRole="button"
             >
@@ -158,7 +165,7 @@ export default function ChatsScreen() {
                 <Text
                   style={[
                     t.subheadline,
-                    { color: "#FFFFFF", fontFamily: "Inter_600SemiBold" },
+                    { color: colors.onTint, fontFamily: "Inter_600SemiBold" },
                   ]}
                 >
                   Browse Personas
@@ -206,7 +213,7 @@ export default function ChatsScreen() {
           </>
         )}
 
-        <View style={{ height: 100 }} />
+        <View style={{ height: layout.bottomSpacerHeight }} />
       </ScrollView>
     </View>
   );
@@ -262,8 +269,5 @@ const styles = StyleSheet.create({
     alignItems: "center",
     width: 80,
     gap: 4,
-  },
-  swipeBtnText: {
-    color: "#fff",
   },
 });

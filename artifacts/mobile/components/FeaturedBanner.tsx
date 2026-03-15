@@ -13,7 +13,7 @@ type Props = {
 };
 
 export function FeaturedBanner({ character }: Props) {
-  const { colors, typography: t, radii, spacing: sp } = useTheme();
+  const { colors, typography: t, radii, spacing: sp, opacity: op } = useTheme();
 
   const handlePress = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
@@ -28,7 +28,7 @@ export function FeaturedBanner({ character }: Props) {
         {
           backgroundColor: colors.secondarySystemBackground,
           borderRadius: radii.xl,
-          opacity: pressed ? 0.9 : 1,
+          opacity: pressed ? op.pressed : 1,
         },
       ]}
       accessibilityLabel={`Featured persona: ${character.name}. ${character.tagline}`}

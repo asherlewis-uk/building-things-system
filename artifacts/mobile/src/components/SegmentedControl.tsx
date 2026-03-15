@@ -24,7 +24,7 @@ export function SegmentedControl<T extends string>({
   onChange,
   disabled = false,
 }: Props<T>) {
-  const { colors, spacing: sp, radii, typography: t, hitTarget } = useTheme();
+  const { colors, spacing: sp, radii, typography: t, hitTarget, elevation: elev } = useTheme();
   const slideAnim = useRef(new Animated.Value(0)).current;
   const widthRef = useRef(0);
   const selectedIndex = options.findIndex((o) => o.value === selected);
@@ -66,6 +66,7 @@ export function SegmentedControl<T extends string>({
       <Animated.View
         style={[
           styles.thumb,
+          elev.sm,
           {
             width: `${100 / options.length}%`,
             backgroundColor: colors.secondarySystemBackground,
@@ -114,11 +115,6 @@ const styles = StyleSheet.create({
     position: "absolute",
     top: 2,
     bottom: 2,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.12,
-    shadowRadius: 2,
-    elevation: 2,
   },
   segment: {
     flex: 1,

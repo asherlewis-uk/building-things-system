@@ -13,7 +13,7 @@ type Props = {
 };
 
 export function CharacterCard({ character, style }: Props) {
-  const { colors, typography: t, radii, spacing: sp, hitTarget } = useTheme();
+  const { colors, typography: t, radii, spacing: sp, hitTarget, opacity: op } = useTheme();
 
   const handlePress = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -28,7 +28,7 @@ export function CharacterCard({ character, style }: Props) {
         {
           backgroundColor: colors.secondarySystemBackground,
           borderRadius: radii.lg,
-          opacity: pressed ? 0.85 : 1,
+          opacity: pressed ? op.pressed : 1,
         },
         style,
       ]}

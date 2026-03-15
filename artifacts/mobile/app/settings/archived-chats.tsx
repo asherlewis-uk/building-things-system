@@ -3,30 +3,26 @@ import { router } from "expo-router";
 import React from "react";
 import {
   Alert,
-  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
   Text,
   View,
 } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { CharacterAvatar } from "@/components/CharacterAvatar";
 import { useChats } from "@/context/ChatsContext";
+import { ScreenHeader } from "@/src/components/ScreenHeader";
 import { useTheme } from "@/src/theme/useTheme";
 import { getCharacterById } from "@/data/characters";
 
 export default function ArchivedChatsScreen() {
-  const { colors, spacing: sp, typography: t, hitTarget } = useTheme();
-  const insets = useSafeAreaInsets();
+  const { colors, spacing: sp, typography: t, hitTarget, opacity: op } = useTheme();
   const {
     archivedConversations,
     restoreConversation,
     deleteArchivedConversation,
   } = useChats();
-
-  const topPad = Platform.OS === "web" ? 67 : insets.top;
 
   const handleRestore = (id: string, name: string) => {
     Alert.alert("Restore Chat", `Restore your conversation with ${name}?`, [
@@ -52,28 +48,7 @@ export default function ArchivedChatsScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: colors.systemBackground }]}>
-      <View
-        style={[
-          styles.header,
-          {
-            paddingTop: topPad + sp.sm,
-            borderBottomColor: colors.separator,
-          },
-        ]}
-      >
-        <Pressable
-          onPress={() => router.back()}
-          style={styles.backBtn}
-          accessibilityLabel="Go back"
-          accessibilityRole="button"
-        >
-          <Feather name="arrow-left" size={22} color={colors.label} />
-        </Pressable>
-        <Text style={[t.headline, { color: colors.label }]}>
-          Archived Chats
-        </Text>
-        <View style={styles.headerSpacer} />
-      </View>
+      <ScreenHeader title="Archived Chats" onBack={() => router.back()} />
 
       <ScrollView
         showsVerticalScrollIndicator={false}
@@ -160,12 +135,13 @@ export default function ArchivedChatsScreen() {
                     onPress={() =>
                       handleRestore(conv.id, conv.characterName)
                     }
-                    style={[
+                    style={({ pressed }) => [
                       styles.actionBtn,
                       {
                         backgroundColor: colors.secondarySystemBackground,
                         width: hitTarget.minimum,
                         height: hitTarget.minimum,
+                        opacity: pressed ? op.pressed : 1,
                       },
                     ]}
                     accessibilityLabel={`Restore chat with ${conv.characterName}`}
@@ -177,12 +153,13 @@ export default function ArchivedChatsScreen() {
                     onPress={() =>
                       handleDelete(conv.id, conv.characterName)
                     }
-                    style={[
+                    style={({ pressed }) => [
                       styles.actionBtn,
                       {
                         backgroundColor: colors.secondarySystemBackground,
                         width: hitTarget.minimum,
                         height: hitTarget.minimum,
+                        opacity: pressed ? op.pressed : 1,
                       },
                     ]}
                     accessibilityLabel={`Delete chat with ${conv.characterName}`}
@@ -208,23 +185,6 @@ export default function ArchivedChatsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-  },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 16,
-    paddingBottom: 12,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-  },
-  backBtn: {
-    width: 44,
-    height: 44,
-    alignItems: "center",
-    justifyContent: "center",
-    borderRadius: 22,
-  },
-  headerSpacer: {
-    width: 44,
   },
   scrollContent: {
     paddingBottom: 20,

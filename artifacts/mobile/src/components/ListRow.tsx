@@ -50,7 +50,7 @@ export function ListRow({
   separatorInset = 0,
   style,
 }: Props) {
-  const { colors, spacing: sp, typography: t, hitTarget, rowHeight } =
+  const { colors, spacing: sp, typography: t, hitTarget, rowHeight, opacity: op } =
     useTheme();
 
   const isInteractive = !!onPress || accessory === "switch";
@@ -137,7 +137,7 @@ export function ListRow({
               false: colors.fill,
               true: colors.tint,
             }}
-            thumbColor="#FFFFFF"
+            thumbColor={colors.onTint}
             disabled={disabled}
             accessibilityLabel={`${title} toggle`}
             accessibilityRole="switch"
@@ -153,7 +153,7 @@ export function ListRow({
         <Pressable
           onPress={handlePress}
           disabled={disabled}
-          style={({ pressed }) => [{ opacity: pressed ? 0.6 : 1 }]}
+          style={({ pressed }) => [{ opacity: pressed ? op.pressed : 1 }]}
           accessibilityRole="button"
           accessibilityLabel={title}
           accessibilityState={{ disabled }}

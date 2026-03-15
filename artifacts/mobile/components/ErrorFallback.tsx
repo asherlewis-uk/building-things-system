@@ -13,6 +13,8 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { darkColors, lightColors, elevation } from "@/src/theme/tokens";
+
 export type ErrorFallbackProps = {
   error: Error;
   resetError: () => void;
@@ -22,14 +24,16 @@ export function ErrorFallback({ error, resetError }: ErrorFallbackProps) {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === "dark";
   const insets = useSafeAreaInsets();
+  const palette = isDark ? darkColors : lightColors;
 
   const theme = {
-    background: isDark ? "#000000" : "#FFFFFF",
-    backgroundSecondary: isDark ? "#1C1C1E" : "#F2F2F7",
-    text: isDark ? "#FFFFFF" : "#000000",
-    textSecondary: isDark ? "rgba(255, 255, 255, 0.7)" : "rgba(0, 0, 0, 0.7)",
-    link: "#007AFF",
-    buttonText: "#FFFFFF",
+    background: palette.systemBackground,
+    backgroundSecondary: palette.secondarySystemBackground,
+    text: palette.label,
+    textSecondary: palette.secondaryLabel,
+    link: palette.tint,
+    buttonText: palette.onTint,
+    separator: palette.separator,
   };
 
   const [isModalVisible, setIsModalVisible] = useState(false);
@@ -69,7 +73,7 @@ export function ErrorFallback({ error, resetError }: ErrorFallbackProps) {
             {
               top: insets.top + 16,
               backgroundColor: theme.backgroundSecondary,
-              opacity: pressed ? 0.8 : 1,
+              opacity: pressed ? 0.75 : 1,
             },
           ]}
         >
@@ -92,7 +96,7 @@ export function ErrorFallback({ error, resetError }: ErrorFallbackProps) {
             styles.button,
             {
               backgroundColor: theme.link,
-              opacity: pressed ? 0.9 : 1,
+              opacity: pressed ? 0.75 : 1,
               transform: [{ scale: pressed ? 0.98 : 1 }],
             },
           ]}
@@ -121,9 +125,7 @@ export function ErrorFallback({ error, resetError }: ErrorFallbackProps) {
                 style={[
                   styles.modalHeader,
                   {
-                    borderBottomColor: isDark
-                      ? "rgba(255, 255, 255, 0.1)"
-                      : "rgba(0, 0, 0, 0.1)",
+                    borderBottomColor: theme.separator,
                   },
                 ]}
               >
@@ -136,7 +138,7 @@ export function ErrorFallback({ error, resetError }: ErrorFallbackProps) {
                   accessibilityRole="button"
                   style={({ pressed }) => [
                     styles.closeButton,
-                    { opacity: pressed ? 0.6 : 1 },
+                    { opacity: pressed ? 0.75 : 1 },
                   ]}
                 >
                   <Feather name="x" size={24} color={theme.text} />
@@ -197,12 +199,13 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 28,
-    fontWeight: "700",
+    fontFamily: "Inter_700Bold",
     textAlign: "center",
     lineHeight: 40,
   },
   message: {
     fontSize: 16,
+    fontFamily: "Inter_400Regular",
     textAlign: "center",
     lineHeight: 24,
   },
@@ -222,17 +225,10 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     paddingHorizontal: 24,
     minWidth: 200,
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    ...elevation.md,
   },
   buttonText: {
-    fontWeight: "600",
+    fontFamily: "Inter_600SemiBold",
     textAlign: "center",
     fontSize: 16,
   },
@@ -258,7 +254,7 @@ const styles = StyleSheet.create({
   },
   modalTitle: {
     fontSize: 20,
-    fontWeight: "600",
+    fontFamily: "Inter_600SemiBold",
   },
   closeButton: {
     width: 44,

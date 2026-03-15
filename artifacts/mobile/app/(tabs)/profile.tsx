@@ -18,11 +18,10 @@ import { useTheme } from "@/src/theme/useTheme";
 import { useChats } from "@/context/ChatsContext";
 
 export default function ProfileScreen() {
-  const { colors, spacing: sp, typography: t, gradients, radii, screenInsets } =
+  const { colors, spacing: sp, typography: t, gradients, radii, screenInsets, opacity: op, layout } =
     useTheme();
   const { conversations } = useChats();
 
-  const topPadding = Platform.OS === "web" ? 67 : 0;
   const totalMessages = conversations.reduce(
     (sum, c) => sum + c.messages.length,
     0
@@ -35,7 +34,7 @@ export default function ProfileScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={[
           styles.scrollContent,
-          { paddingTop: Platform.OS === "web" ? topPadding : 0 },
+          { paddingTop: Platform.OS === "web" ? layout.webTopPadding : 0 },
         ]}
       >
         <View
@@ -54,7 +53,7 @@ export default function ProfileScreen() {
             onPress={() => router.push("/settings")}
             style={({ pressed }) => [
               styles.gearBtn,
-              { opacity: pressed ? 0.6 : 1 },
+              { opacity: pressed ? op.pressed : 1 },
             ]}
             accessibilityLabel="Open settings"
             accessibilityRole="button"
@@ -70,7 +69,7 @@ export default function ProfileScreen() {
             end={gradients.spectralDiagonal.end}
             style={styles.avatarGradient}
           >
-            <Feather name="user" size={32} color="#fff" />
+            <Feather name="user" size={32} color={colors.onTint} />
           </LinearGradient>
           <Text style={[t.title2, { color: colors.label }]}>You</Text>
           <Text style={[t.subheadline, { color: colors.tintDim }]}>
@@ -127,7 +126,7 @@ export default function ProfileScreen() {
           />
         </Surface>
 
-        <View style={{ height: 100 }} />
+        <View style={{ height: layout.bottomSpacerHeight }} />
       </ScrollView>
     </View>
   );

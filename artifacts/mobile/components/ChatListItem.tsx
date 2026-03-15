@@ -31,7 +31,7 @@ function formatTime(timestamp: number): string {
 }
 
 export function ChatListItem({ conversation, character }: Props) {
-  const { colors, typography: t, spacing: sp, hitTarget } = useTheme();
+  const { colors, typography: t, spacing: sp, hitTarget, opacity: op } = useTheme();
 
   const handlePress = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -46,7 +46,7 @@ export function ChatListItem({ conversation, character }: Props) {
       onPress={handlePress}
       style={({ pressed }) => [
         styles.container,
-        { minHeight: hitTarget.minimum, opacity: pressed ? 0.8 : 1 },
+        { minHeight: hitTarget.minimum, opacity: pressed ? op.pressed : 1 },
       ]}
       accessibilityLabel={`Chat with ${character.name}. Last message: ${conversation.lastMessage || "No messages yet"}. ${formatTime(conversation.lastMessageTime)}`}
       accessibilityRole="button"

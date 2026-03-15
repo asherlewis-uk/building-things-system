@@ -69,6 +69,7 @@ export const opacity = {
   muted: 0.25,
   dim: 0.4,
   medium: 0.6,
+  pressed: 0.75,
   strong: 0.8,
   opaque: 1,
 } as const;
@@ -234,6 +235,7 @@ export type SemanticColors = {
   cardBackgroundAlt: string;
   navBarMaterial: string;
   tabBarMaterial: string;
+  onTint: string;
 };
 
 export const darkColors: SemanticColors = {
@@ -265,6 +267,7 @@ export const darkColors: SemanticColors = {
   cardBackgroundAlt: "#2C2C2E",
   navBarMaterial: "rgba(30,30,30,0.72)",
   tabBarMaterial: "rgba(30,30,30,0.72)",
+  onTint: "#FFFFFF",
 };
 
 export const lightColors: SemanticColors = {
@@ -296,6 +299,7 @@ export const lightColors: SemanticColors = {
   cardBackgroundAlt: "#F2F2F7",
   navBarMaterial: "rgba(249,249,249,0.94)",
   tabBarMaterial: "rgba(249,249,249,0.94)",
+  onTint: "#FFFFFF",
 };
 
 export const hitTarget = {
@@ -314,6 +318,12 @@ export const screenInsets = {
   sectionHeaderLeading: spacing.base,
 } as const;
 
+export const layout = {
+  webTopPadding: 67,
+  bottomSpacerHeight: 100,
+  gridItemWidth: "47%" as const,
+} as const;
+
 export type Theme = {
   colors: SemanticColors;
   spacing: typeof spacing;
@@ -325,6 +335,7 @@ export type Theme = {
   hitTarget: typeof hitTarget;
   rowHeight: typeof rowHeight;
   screenInsets: typeof screenInsets;
+  layout: typeof layout;
   isDark: boolean;
 };
 
@@ -340,6 +351,7 @@ export function createTheme(mode: "dark" | "light"): Theme {
     hitTarget,
     rowHeight,
     screenInsets,
+    layout,
     isDark: mode === "dark",
   };
 }

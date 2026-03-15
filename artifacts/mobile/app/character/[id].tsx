@@ -23,7 +23,7 @@ import {
 import { getCharacterById } from "@/data/characters";
 
 export default function CharacterDetailScreen() {
-  const { colors, spacing: sp, typography: t, radii, gradients, hitTarget } =
+  const { colors, spacing: sp, typography: t, radii, gradients, hitTarget, opacity: op, screenInsets, layout } =
     useTheme();
   const insets = useSafeAreaInsets();
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -36,9 +36,44 @@ export default function CharacterDetailScreen() {
       <View
         style={[styles.container, { backgroundColor: colors.systemBackground }]}
       >
-        <Text style={[t.body, { color: colors.label }]}>
-          Character not found.
-        </Text>
+        <View style={styles.emptyState}>
+          <View
+            style={[
+              styles.emptyIcon,
+              { backgroundColor: colors.secondarySystemBackground },
+            ]}
+          >
+            <Feather name="alert-circle" size={32} color={colors.tintMuted} />
+          </View>
+          <Text style={[t.title3, { color: colors.label }]}>
+            Character not found
+          </Text>
+          <Text
+            style={[
+              t.subheadline,
+              { color: colors.secondaryLabel, textAlign: "center" },
+            ]}
+          >
+            This character may have been removed or is no longer available.
+          </Text>
+          <Pressable
+            onPress={() => router.back()}
+            style={({ pressed }) => [
+              styles.emptyBackBtn,
+              {
+                backgroundColor: colors.tint,
+                opacity: pressed ? op.pressed : 1,
+              },
+            ]}
+            accessibilityLabel="Go back"
+            accessibilityRole="button"
+          >
+            <Feather name="arrow-left" size={16} color={colors.onTint} />
+            <Text style={[t.subheadline, { color: colors.onTint, fontFamily: "Inter_600SemiBold" }]}>
+              Go Back
+            </Text>
+          </Pressable>
+        </View>
       </View>
     );
   }
@@ -70,7 +105,7 @@ export default function CharacterDetailScreen() {
     router.push({ pathname: "/chat/[id]", params: { id: character.id } });
   };
 
-  const topPad = Platform.OS === "web" ? 67 : insets.top;
+  const topPad = Platform.OS === "web" ? layout.webTopPadding : insets.top;
 
   return (
     <View
@@ -87,11 +122,12 @@ export default function CharacterDetailScreen() {
           />
           <Pressable
             onPress={() => router.back()}
-            style={[
+            style={({ pressed }) => [
               styles.backBtn,
               {
                 backgroundColor: colors.secondarySystemBackground,
                 top: topPad,
+                opacity: pressed ? op.pressed : 1,
               },
             ]}
             accessibilityLabel="Go back"
@@ -157,7 +193,7 @@ export default function CharacterDetailScreen() {
         <View
           style={[
             styles.section,
-            { paddingHorizontal: screenInsets(sp).horizontal },
+            { paddingHorizontal: screenInsets.horizontal },
           ]}
         >
           <Text style={[t.headline, { color: colors.label }]}>About</Text>
@@ -169,7 +205,7 @@ export default function CharacterDetailScreen() {
         <View
           style={[
             styles.section,
-            { paddingHorizontal: screenInsets(sp).horizontal },
+            { paddingHorizontal: screenInsets.horizontal },
           ]}
         >
           <Text style={[t.headline, { color: colors.label }]}>Tags</Text>
@@ -197,7 +233,7 @@ export default function CharacterDetailScreen() {
         <View
           style={[
             styles.section,
-            { paddingHorizontal: screenInsets(sp).horizontal },
+            { paddingHorizontal: screenInsets.horizontal },
           ]}
         >
           <Text style={[t.footnote, { color: colors.tertiaryLabel }]}>
@@ -223,7 +259,7 @@ export default function CharacterDetailScreen() {
           onPress={handleStartChat}
           style={({ pressed }) => [
             styles.startChatBtn,
-            { opacity: pressed ? 0.85 : 1, borderRadius: radii.lg },
+            { opacity: pressed ? op.pressed : 1, borderRadius: radii.lg },
           ]}
           accessibilityLabel={`Start chat with ${character.name}`}
           accessibilityRole="button"
@@ -234,11 +270,11 @@ export default function CharacterDetailScreen() {
             end={gradients.spectral.end}
             style={styles.startChatGradient}
           >
-            <Feather name="message-circle" size={18} color="#fff" />
+            <Feather name="message-circle" size={18} color={colors.onTint} />
             <Text
               style={[
                 t.headline,
-                { color: "#FFFFFF" },
+                { color: colors.onTint },
               ]}
             >
               Start Chat
@@ -248,10 +284,6 @@ export default function CharacterDetailScreen() {
       </View>
     </View>
   );
-}
-
-function screenInsets(sp: { base: number }) {
-  return { horizontal: sp.base + 4 };
 }
 
 const styles = StyleSheet.create({
@@ -319,5 +351,29 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     gap: 10,
     paddingVertical: 16,
+  },
+  emptyState: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: 40,
+    gap: 12,
+  },
+  emptyIcon: {
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 8,
+  },
+  emptyBackBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: 24,
+    marginTop: 8,
   },
 });

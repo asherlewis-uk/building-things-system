@@ -25,7 +25,7 @@ export function SpectralButton({
   style,
   children,
 }: Props) {
-  const { gradients, radii, typography: t } = useTheme();
+  const { colors, gradients, radii, typography: t, opacity: op } = useTheme();
 
   return (
     <Pressable
@@ -33,7 +33,7 @@ export function SpectralButton({
       disabled={disabled}
       style={({ pressed }) => [
         styles.wrapper,
-        { borderRadius: radii.full, opacity: pressed ? 0.85 : disabled ? 0.5 : 1 },
+        { borderRadius: radii.full, opacity: pressed ? op.pressed : disabled ? 0.5 : 1 },
         style,
       ]}
       accessibilityRole="button"
@@ -47,7 +47,7 @@ export function SpectralButton({
         style={[styles.gradient, { borderRadius: radii.full }]}
       >
         {children || (
-          <Text style={[t.subheadline, styles.label]}>{label}</Text>
+          <Text style={[t.subheadline, styles.label, { color: colors.onTint }]}>{label}</Text>
         )}
       </LinearGradient>
     </Pressable>
@@ -65,7 +65,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   label: {
-    color: "#FFFFFF",
     fontFamily: "Inter_600SemiBold",
   },
 });

@@ -13,7 +13,7 @@ type Props = {
 };
 
 export function Chip({ label, selected, onPress, disabled = false }: Props) {
-  const { colors, spacing: sp, radii, typography: t, hitTarget, gradients } =
+  const { colors, spacing: sp, radii, typography: t, hitTarget, gradients, opacity: op } =
     useTheme();
 
   const handlePress = () => {
@@ -30,7 +30,7 @@ export function Chip({ label, selected, onPress, disabled = false }: Props) {
         styles.wrapper,
         {
           borderRadius: radii.full,
-          opacity: pressed ? 0.7 : disabled ? 0.4 : 1,
+          opacity: pressed ? op.pressed : disabled ? op.dim : 1,
           minHeight: hitTarget.minimum,
         },
       ]}
@@ -45,7 +45,7 @@ export function Chip({ label, selected, onPress, disabled = false }: Props) {
           end={gradients.spectral.end}
           style={[styles.pill, { borderRadius: radii.full }]}
         >
-          <Text style={[t.subheadline, styles.selectedLabel]}>
+          <Text style={[t.subheadline, styles.selectedLabel, { color: colors.onTint }]}>
             {label}
           </Text>
         </LinearGradient>
@@ -81,7 +81,6 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   selectedLabel: {
-    color: "#FFFFFF",
     fontFamily: "Inter_500Medium",
   },
 });

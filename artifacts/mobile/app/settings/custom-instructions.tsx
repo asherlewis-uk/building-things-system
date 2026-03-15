@@ -2,23 +2,20 @@ import { Feather } from "@expo/vector-icons";
 import { router } from "expo-router";
 import React, { useEffect, useRef, useState } from "react";
 import {
-  Platform,
-  Pressable,
   ScrollView,
   StyleSheet,
   Text,
   TextInput,
   View,
 } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { ScreenHeader } from "@/src/components/ScreenHeader";
 import { Surface } from "@/src/components/Surface";
 import { useTheme } from "@/src/theme/useTheme";
 import { useSettings } from "@/context/SettingsContext";
 
 export default function CustomInstructionsScreen() {
   const { colors, spacing: sp, typography: t, radii, screenInsets } = useTheme();
-  const insets = useSafeAreaInsets();
   const { settings, updateCustomInstructions } = useSettings();
 
   const [aboutUser, setAboutUser] = useState(
@@ -62,34 +59,11 @@ export default function CustomInstructionsScreen() {
     router.back();
   };
 
-  const topPad = Platform.OS === "web" ? 67 : insets.top;
-
   return (
     <View
       style={[styles.container, { backgroundColor: colors.groupedBackground }]}
     >
-      <View
-        style={[
-          styles.header,
-          {
-            paddingTop: topPad + sp.sm,
-            borderBottomColor: colors.separator,
-          },
-        ]}
-      >
-        <Pressable
-          onPress={handleBack}
-          style={styles.backBtn}
-          accessibilityLabel="Go back"
-          accessibilityRole="button"
-        >
-          <Feather name="arrow-left" size={22} color={colors.label} />
-        </Pressable>
-        <Text style={[t.headline, { color: colors.label }]}>
-          Custom Instructions
-        </Text>
-        <View style={styles.headerSpacer} />
-      </View>
+      <ScreenHeader title="Custom Instructions" onBack={handleBack} />
 
       <ScrollView
         showsVerticalScrollIndicator={false}
@@ -172,23 +146,6 @@ export default function CustomInstructionsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-  },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 16,
-    paddingBottom: 12,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-  },
-  backBtn: {
-    width: 44,
-    height: 44,
-    alignItems: "center",
-    justifyContent: "center",
-    borderRadius: 22,
-  },
-  headerSpacer: {
-    width: 44,
   },
   scrollContent: {
     paddingBottom: 20,

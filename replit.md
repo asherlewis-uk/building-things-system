@@ -28,11 +28,15 @@ An unbranded iOS 26-native Expo mobile app inspired by Character.ai's UX. Full-s
 ## Color System
 - **Teal Core** (#2DD4BF): Default tint color — tab icons, accents, interactive elements
 - **Spectral Mode** (green→blue→violet gradient): Active/selected states — chips, send button, avatar rings, CTA buttons
+- **onTint** (#FFFFFF): Text/icons on tinted/gradient backgrounds
 - iOS semantic colors: systemBackground, secondarySystemBackground, label, secondaryLabel, separator, fill, etc.
+- **Press feedback**: Standardized `opacity.pressed = 0.75` across all Pressable components
+- **Layout constants**: `layout.webTopPadding`, `layout.bottomSpacerHeight`, `layout.gridItemWidth` replace magic numbers
 
 ## Reusable Component Library (`src/components/`)
 - **Surface**: Background container with variants (default/secondary/grouped/elevated)
 - **ListRow**: iOS-style list row with leading icon, title, subtitle, trailing accessory (disclosure/switch/badge), separator insets, 44pt hit targets, haptics
+- **ScreenHeader**: Shared back-button + centered title + trailing spacer header, used across settings, archived chats, custom instructions, AI provider screens
 - **SectionHeader**: iOS uppercase section header with secondaryLabel color
 - **SegmentedControl**: iOS-faithful segmented control with animated thumb
 - **Chip**: Filter pill with spectral gradient selected state
@@ -79,6 +83,7 @@ artifacts/mobile/
       SectionHeader.tsx   # Uppercase section headers
       SegmentedControl.tsx # Animated segmented control
       Chip.tsx            # Filter pills with gradient
+      ScreenHeader.tsx    # Shared back+title+spacer header
       index.ts            # Barrel exports
   components/             # App-specific components (CharacterCard, MessageBubble, etc.)
   context/
@@ -114,7 +119,11 @@ artifacts/mobile/
 - Provider hierarchy: SafeAreaProvider → ErrorBoundary → QueryClient → SettingsProvider → ThemeProvider → ChatsProvider → GestureHandler → KeyboardProvider
 - Swipe gestures use react-native-gesture-handler Swipeable component
 - Archive uses separate AsyncStorage key (ARCHIVE_KEY) from active conversations
-- All components use `useTheme()` hook — no direct `Colors.dark` references remain
+- All components use `useTheme()` hook — no direct `Colors.dark` references remain; legacy `constants/colors.ts` removed
+- Category tile colors derive from `spectralColors` palette (theme tokens), not hardcoded inline arrays
+- Search category tiles are interactive (tapping filters by category)
+- "Character not found" empty states include icon, descriptive text, and back button
+- Tab bar BlurView tint adapts to light/dark mode dynamically
 - All interactive elements have 44pt minimum hit targets
 - VoiceOver accessibilityRole/accessibilityLabel on all interactive elements
 - GradientColors type ensures LinearGradient colors prop type safety

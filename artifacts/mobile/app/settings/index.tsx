@@ -1,22 +1,19 @@
-import { Feather } from "@expo/vector-icons";
 import { router } from "expo-router";
 import React from "react";
 import {
   Alert,
   Linking,
   Platform,
-  Pressable,
   ScrollView,
   Share,
   StyleSheet,
-  Text,
   View,
 } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { useChats } from "@/context/ChatsContext";
 import { useSettings, type ThemePreference } from "@/context/SettingsContext";
 import { ListRow } from "@/src/components/ListRow";
+import { ScreenHeader } from "@/src/components/ScreenHeader";
 import { SectionHeader } from "@/src/components/SectionHeader";
 import { SegmentedControl } from "@/src/components/SegmentedControl";
 import { Surface } from "@/src/components/Surface";
@@ -43,13 +40,10 @@ const themeOptions: { label: string; value: ThemePreference }[] = [
 ];
 
 export default function SettingsScreen() {
-  const { colors, spacing: sp, typography: t, screenInsets } = useTheme();
-  const insets = useSafeAreaInsets();
+  const { colors, spacing: sp, typography: t, screenInsets, layout } = useTheme();
   const { settings, updateTheme, updateHapticFeedback } = useSettings();
   const { clearAllConversations, exportAllData, archivedConversations } =
     useChats();
-
-  const topPad = Platform.OS === "web" ? 67 : insets.top;
 
   const handleClearAll = () => {
     Alert.alert(
@@ -88,26 +82,7 @@ export default function SettingsScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: colors.groupedBackground }]}>
-      <View
-        style={[
-          styles.header,
-          {
-            paddingTop: topPad + sp.sm,
-            borderBottomColor: colors.separator,
-          },
-        ]}
-      >
-        <Pressable
-          onPress={() => router.back()}
-          style={styles.backBtn}
-          accessibilityLabel="Go back"
-          accessibilityRole="button"
-        >
-          <Feather name="arrow-left" size={22} color={colors.label} />
-        </Pressable>
-        <Text style={[t.headline, { color: colors.label }]}>Settings</Text>
-        <View style={styles.headerSpacer} />
-      </View>
+      <ScreenHeader title="Settings" onBack={() => router.back()} />
 
       <ScrollView
         showsVerticalScrollIndicator={false}
@@ -117,26 +92,25 @@ export default function SettingsScreen() {
         <SectionHeader title="General" />
         <Surface variant="grouped" style={{ marginHorizontal: screenInsets.groupedHorizontal }}>
           <View style={[styles.themeRow, { paddingHorizontal: sp.base }]}>
-            <Text style={[t.body, { color: colors.label, marginBottom: sp.sm }]}>
-              Theme
-            </Text>
+            <ListRow
+              icon="smartphone"
+              title="Haptic Feedback"
+              accessory="switch"
+              switchValue={settings.hapticFeedback}
+              onSwitchChange={updateHapticFeedback}
+              showSeparator={false}
+            />
+          </View>
+          <View
+            style={[styles.sep, { backgroundColor: colors.separator, marginLeft: sp.base }]}
+          />
+          <View style={[styles.themeRow, { paddingHorizontal: sp.base }]}>
             <SegmentedControl
               options={themeOptions}
               selected={settings.theme}
               onChange={updateTheme}
             />
           </View>
-          <View
-            style={[styles.sep, { backgroundColor: colors.separator, marginLeft: sp.base }]}
-          />
-          <ListRow
-            icon="smartphone"
-            title="Haptic Feedback"
-            accessory="switch"
-            switchValue={settings.hapticFeedback}
-            onSwitchChange={updateHapticFeedback}
-            showSeparator={false}
-          />
         </Surface>
 
         <SectionHeader title="AI Provider" />
@@ -218,23 +192,6 @@ export default function SettingsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-  },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 16,
-    paddingBottom: 12,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-  },
-  backBtn: {
-    width: 44,
-    height: 44,
-    alignItems: "center",
-    justifyContent: "center",
-    borderRadius: 22,
-  },
-  headerSpacer: {
-    width: 44,
   },
   scrollContent: {
     paddingBottom: 20,

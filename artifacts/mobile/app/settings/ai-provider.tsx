@@ -3,7 +3,6 @@ import { router } from "expo-router";
 import React, { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
-  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -11,13 +10,13 @@ import {
   TextInput,
   View,
 } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import {
   useSettings,
   type ProviderID,
 } from "@/context/SettingsContext";
 import { ListRow } from "@/src/components/ListRow";
+import { ScreenHeader } from "@/src/components/ScreenHeader";
 import { SectionHeader } from "@/src/components/SectionHeader";
 import { Surface } from "@/src/components/Surface";
 import { useTheme } from "@/src/theme/useTheme";
@@ -44,8 +43,7 @@ const FALLBACK_PROVIDERS: ProviderInfo[] = [
 ];
 
 export default function AIProviderScreen() {
-  const { colors, spacing: sp, typography: t, radii, screenInsets } = useTheme();
-  const insets = useSafeAreaInsets();
+  const { colors, spacing: sp, typography: t, radii, screenInsets, opacity: op } = useTheme();
   const {
     settings,
     updateProvider,
@@ -58,8 +56,6 @@ export default function AIProviderScreen() {
   const [ollamaModels, setOllamaModels] = useState<string[]>([]);
   const [checkingConnection, setCheckingConnection] = useState(false);
   const [connectionStatus, setConnectionStatus] = useState<"idle" | "ok" | "error">("idle");
-
-  const topPad = Platform.OS === "web" ? 67 : insets.top;
 
   const selectedProvider = providers.find((p) => p.id === settings.ai.provider);
   const currentModels = selectedProvider?.id === "ollama" && ollamaModels.length > 0
@@ -145,26 +141,7 @@ export default function AIProviderScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: colors.groupedBackground }]}>
-      <View
-        style={[
-          styles.header,
-          {
-            paddingTop: topPad + sp.sm,
-            borderBottomColor: colors.separator,
-          },
-        ]}
-      >
-        <Pressable
-          onPress={() => router.back()}
-          style={styles.backBtn}
-          accessibilityLabel="Go back"
-          accessibilityRole="button"
-        >
-          <Feather name="arrow-left" size={22} color={colors.label} />
-        </Pressable>
-        <Text style={[t.headline, { color: colors.label }]}>AI Provider</Text>
-        <View style={styles.headerSpacer} />
-      </View>
+      <ScreenHeader title="AI Provider" onBack={() => router.back()} />
 
       <ScrollView
         showsVerticalScrollIndicator={false}
@@ -177,10 +154,10 @@ export default function AIProviderScreen() {
             const isSelected = settings.ai.provider === p.id;
             const statusColor =
               p.status === "ready"
-                ? "#34C759"
+                ? colors.success
                 : p.status === "needs_endpoint"
-                  ? "#FF9500"
-                  : "#FF3B30";
+                  ? colors.warning
+                  : colors.destructive;
             const statusLabel =
               p.status === "ready"
                 ? "Ready"
@@ -196,7 +173,7 @@ export default function AIProviderScreen() {
                     {
                       paddingHorizontal: sp.base,
                       minHeight: 44,
-                      opacity: pressed ? 0.6 : 1,
+                      opacity: pressed ? op.pressed : 1,
                     },
                     isSelected ? { backgroundColor: colors.tintGhost } : undefined,
                   ]}
@@ -294,21 +271,21 @@ export default function AIProviderScreen() {
                 <Pressable
                   onPress={handleCheckConnection}
                   disabled={checkingConnection}
-                  style={[
+                  style={({ pressed }) => [
                     styles.checkBtn,
                     {
                       backgroundColor: colors.tint,
                       borderRadius: radii.sm,
-                      opacity: checkingConnection ? 0.6 : 1,
+                      opacity: checkingConnection ? op.medium : pressed ? op.pressed : 1,
                     },
                   ]}
                   accessibilityLabel="Test connection"
                   accessibilityRole="button"
                 >
                   {checkingConnection ? (
-                    <ActivityIndicator color="#fff" size="small" />
+                    <ActivityIndicator color={colors.onTint} size="small" />
                   ) : (
-                    <Text style={[t.callout, { color: "#fff", fontWeight: "600" }]}>
+                    <Text style={[t.callout, { color: colors.onTint, fontFamily: "Inter_600SemiBold" }]}>
                       Test Connection
                     </Text>
                   )}
@@ -320,7 +297,7 @@ export default function AIProviderScreen() {
                         styles.statusDot,
                         {
                           backgroundColor:
-                            connectionStatus === "ok" ? "#34C759" : "#FF3B30",
+                            connectionStatus === "ok" ? colors.success : colors.destructive,
                         },
                       ]}
                     />
@@ -330,8 +307,8 @@ export default function AIProviderScreen() {
                         {
                           color:
                             connectionStatus === "ok"
-                              ? "#34C759"
-                              : "#FF3B30",
+                              ? colors.success
+                              : colors.destructive,
                         },
                       ]}
                     >
@@ -406,7 +383,7 @@ export default function AIProviderScreen() {
           )}
         </Surface>
 
-        <View style={[styles.footnote, { paddingHorizontal: screenInsets.horizontal }]}>
+        <View style={[styles.footnoteView, { paddingHorizontal: screenInsets.horizontal }]}>
           <Text style={[t.caption1, { color: colors.tertiaryLabel }]}>
             {getProviderFootnote(settings.ai.provider)}
           </Text>
@@ -458,23 +435,6 @@ function getProviderFootnote(id: ProviderID): string {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-  },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 16,
-    paddingBottom: 12,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-  },
-  backBtn: {
-    width: 44,
-    height: 44,
-    alignItems: "center",
-    justifyContent: "center",
-    borderRadius: 22,
-  },
-  headerSpacer: {
-    width: 44,
   },
   scrollContent: {
     paddingBottom: 20,
@@ -533,7 +493,7 @@ const styles = StyleSheet.create({
   emptyModels: {
     paddingVertical: 20,
   },
-  footnote: {
+  footnoteView: {
     paddingTop: 8,
   },
 });

@@ -30,7 +30,7 @@ export function MessageBubble({ message }: Props) {
           isUser ? styles.userBubble : styles.assistantBubble,
         ]}
       >
-        <Text style={[t.body, { color: isUser ? "#FFFFFF" : colors.label }]}>
+        <Text style={[t.body, { color: isUser ? colors.onTint : colors.label }]}>
           {message.content}
         </Text>
       </View>

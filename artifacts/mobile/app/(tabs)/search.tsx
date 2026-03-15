@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from "react";
 import {
   Platform,
+  Pressable,
   ScrollView,
   StyleSheet,
   Text,
@@ -10,15 +11,28 @@ import {
 import { CharacterCard } from "@/components/CharacterCard";
 import { SearchBar } from "@/components/SearchBar";
 import { useTheme } from "@/src/theme/useTheme";
-import { CATEGORIES, CHARACTERS } from "@/data/characters";
+import { spectralColors } from "@/src/theme/tokens";
+import { CATEGORIES, CHARACTERS, getCharactersByCategory } from "@/data/characters";
+
+const CATEGORY_COLORS: Record<string, string> = (() => {
+  const palette = Object.values(spectralColors);
+  const filteredCats = CATEGORIES.filter((c) => c !== "All" && c !== "Featured");
+  const map: Record<string, string> = {};
+  filteredCats.forEach((cat, i) => {
+    map[cat] = palette[i % palette.length];
+  });
+  return map;
+})();
 
 export default function SearchScreen() {
-  const { colors, spacing: sp, typography: t, radii, screenInsets } = useTheme();
+  const { colors, spacing: sp, typography: t, radii, screenInsets, opacity: op, layout } = useTheme();
   const [query, setQuery] = useState("");
-
-  const topPadding = Platform.OS === "web" ? 67 : 0;
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
   const results = useMemo(() => {
+    if (selectedCategory) {
+      return getCharactersByCategory(selectedCategory);
+    }
     if (!query.trim()) return [];
     const q = query.toLowerCase();
     return CHARACTERS.filter(
@@ -29,9 +43,19 @@ export default function SearchScreen() {
         c.tags.some((tag) => tag.toLowerCase().includes(q)) ||
         c.category.toLowerCase().includes(q)
     );
-  }, [query]);
+  }, [query, selectedCategory]);
 
-  const hasQuery = query.trim().length > 0;
+  const hasQuery = query.trim().length > 0 || selectedCategory !== null;
+
+  const handleTilePress = (cat: string) => {
+    setSelectedCategory(cat);
+    setQuery("");
+  };
+
+  const handleQueryChange = (text: string) => {
+    setQuery(text);
+    if (selectedCategory) setSelectedCategory(null);
+  };
 
   return (
     <View style={[styles.container, { backgroundColor: colors.systemBackground }]}>
@@ -41,7 +65,7 @@ export default function SearchScreen() {
         keyboardShouldPersistTaps="handled"
         contentContainerStyle={[
           styles.scrollContent,
-          { paddingTop: Platform.OS === "web" ? topPadding : 0 },
+          { paddingTop: Platform.OS === "web" ? layout.webTopPadding : 0 },
         ]}
       >
         <View
@@ -57,8 +81,8 @@ export default function SearchScreen() {
             Search
           </Text>
           <SearchBar
-            value={query}
-            onChangeText={setQuery}
+            value={selectedCategory ? "" : query}
+            onChangeText={handleQueryChange}
             placeholder="Search personas, genres..."
           />
         </View>
@@ -81,29 +105,24 @@ export default function SearchScreen() {
             <View style={[styles.categoryGrid, { paddingHorizontal: sp.md }]}>
               {CATEGORIES.filter(
                 (c) => c !== "All" && c !== "Featured"
-              ).map((cat, i) => {
-                const tileColors = [
-                  "#7C3AED",
-                  "#059669",
-                  "#DC2626",
-                  "#0E7490",
-                  "#D97706",
-                  "#DB2777",
-                  "#1D4ED8",
-                ];
-                const accent = tileColors[i % tileColors.length];
+              ).map((cat) => {
+                const accent = CATEGORY_COLORS[cat];
                 return (
-                  <View
+                  <Pressable
                     key={cat}
-                    style={[
+                    onPress={() => handleTilePress(cat)}
+                    style={({ pressed }) => [
                       styles.categoryTile,
                       {
                         backgroundColor: accent + "1A",
                         borderColor: accent + "33",
                         borderRadius: radii.lg,
+                        width: layout.gridItemWidth,
+                        opacity: pressed ? op.pressed : 1,
                       },
                     ]}
                     accessibilityLabel={`${cat} category`}
+                    accessibilityRole="button"
                   >
                     <Text
                       style={[
@@ -113,7 +132,7 @@ export default function SearchScreen() {
                     >
                       {cat}
                     </Text>
-                  </View>
+                  </Pressable>
                 );
               })}
             </View>
@@ -134,31 +153,44 @@ export default function SearchScreen() {
           </View>
         ) : (
           <>
-            <Text
-              style={[
-                t.footnote,
-                {
-                  color: colors.tertiaryLabel,
-                  paddingHorizontal: screenInsets.horizontal,
-                  paddingBottom: 10,
-                },
-              ]}
-            >
-              {results.length} result{results.length !== 1 ? "s" : ""}
-            </Text>
+            <View style={[styles.resultHeader, { paddingHorizontal: screenInsets.horizontal }]}>
+              <Text
+                style={[
+                  t.footnote,
+                  {
+                    color: colors.tertiaryLabel,
+                    paddingBottom: 10,
+                  },
+                ]}
+              >
+                {selectedCategory
+                  ? `${selectedCategory} · ${results.length} result${results.length !== 1 ? "s" : ""}`
+                  : `${results.length} result${results.length !== 1 ? "s" : ""}`}
+              </Text>
+              {selectedCategory && (
+                <Pressable
+                  onPress={() => setSelectedCategory(null)}
+                  style={({ pressed }) => [{ opacity: pressed ? op.pressed : 1 }]}
+                  accessibilityLabel="Clear category filter"
+                  accessibilityRole="button"
+                >
+                  <Text style={[t.footnote, { color: colors.tint }]}>Clear</Text>
+                </Pressable>
+              )}
+            </View>
             <View style={[styles.grid, { paddingHorizontal: sp.md }]}>
               {results.map((char) => (
                 <CharacterCard
                   key={char.id}
                   character={char}
-                  style={styles.gridItem}
+                  style={{ width: layout.gridItemWidth }}
                 />
               ))}
             </View>
           </>
         )}
 
-        <View style={{ height: 100 }} />
+        <View style={{ height: layout.bottomSpacerHeight }} />
       </ScrollView>
     </View>
   );
@@ -182,7 +214,6 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   categoryTile: {
-    width: "47%",
     paddingVertical: 20,
     alignItems: "center",
     justifyContent: "center",
@@ -193,8 +224,10 @@ const styles = StyleSheet.create({
     flexWrap: "wrap",
     gap: 10,
   },
-  gridItem: {
-    width: "47%",
+  resultHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
   },
   noResults: {
     alignItems: "center",
