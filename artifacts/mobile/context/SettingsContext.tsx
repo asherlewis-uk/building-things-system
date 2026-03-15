@@ -102,7 +102,11 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
   );
 
   const syncArchivedIds = useCallback((ids: string[]) => {
-    setSettings((prev) => ({ ...prev, archivedConversationIds: ids }));
+    setSettings((prev) => {
+      const updated = { ...prev, archivedConversationIds: ids };
+      saveSettings(updated);
+      return updated;
+    });
   }, []);
 
   return (

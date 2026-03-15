@@ -1,5 +1,6 @@
 import { Feather } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
+import { LinearGradient } from "expo-linear-gradient";
 import { fetch } from "expo/fetch";
 import { router, useLocalSearchParams } from "expo-router";
 import React, { useEffect, useRef, useState } from "react";
@@ -18,7 +19,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { CharacterAvatar } from "@/components/CharacterAvatar";
 import { MessageBubble } from "@/components/MessageBubble";
 import { TypingIndicator } from "@/components/TypingIndicator";
-import Colors from "@/constants/colors";
+import Colors, { spectral } from "@/constants/colors";
 import {
   generateConversationId,
   generateMessageId,
@@ -303,18 +304,23 @@ export default function ChatScreen() {
             disabled={!inputText.trim() || isStreaming}
             style={({ pressed }) => [
               styles.sendBtn,
-              {
-                backgroundColor:
-                  inputText.trim() && !isStreaming ? C.teal : C.card,
-                opacity: pressed ? 0.8 : 1,
-              },
+              { opacity: pressed ? 0.8 : 1 },
             ]}
           >
-            <Feather
-              name="arrow-up"
-              size={18}
-              color={inputText.trim() && !isStreaming ? "#fff" : C.textMuted}
-            />
+            {inputText.trim() && !isStreaming ? (
+              <LinearGradient
+                colors={[spectral.green, spectral.blue, spectral.violet]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={styles.sendGradient}
+              >
+                <Feather name="arrow-up" size={18} color="#fff" />
+              </LinearGradient>
+            ) : (
+              <View style={[styles.sendGradient, { backgroundColor: C.card }]}>
+                <Feather name="arrow-up" size={18} color={C.textMuted} />
+              </View>
+            )}
           </Pressable>
         </View>
       </View>
@@ -385,6 +391,12 @@ const styles = StyleSheet.create({
     lineHeight: 22,
   },
   sendBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    overflow: "hidden",
+  },
+  sendGradient: {
     width: 36,
     height: 36,
     borderRadius: 18,

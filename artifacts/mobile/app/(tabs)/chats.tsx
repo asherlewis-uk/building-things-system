@@ -1,4 +1,5 @@
 import { Feather } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import React from "react";
 import {
@@ -14,7 +15,7 @@ import { Swipeable } from "react-native-gesture-handler";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { ChatListItem } from "@/components/ChatListItem";
-import Colors from "@/constants/colors";
+import Colors, { spectral } from "@/constants/colors";
 import { useChats } from "@/context/ChatsContext";
 import { getCharacterById } from "@/data/characters";
 
@@ -117,9 +118,16 @@ export default function ChatsScreen() {
             </Text>
             <Pressable
               onPress={() => router.push("/")}
-              style={[styles.discoverBtn, { backgroundColor: C.teal }]}
+              style={styles.discoverBtn}
             >
-              <Text style={styles.discoverBtnText}>Browse Personas</Text>
+              <LinearGradient
+                colors={[spectral.green, spectral.blue, spectral.violet]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+                style={styles.discoverBtnGradient}
+              >
+                <Text style={styles.discoverBtnText}>Browse Personas</Text>
+              </LinearGradient>
             </Pressable>
           </View>
         ) : (
@@ -211,10 +219,15 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
   discoverBtn: {
+    borderRadius: 24,
+    marginTop: 8,
+    overflow: "hidden",
+  },
+  discoverBtnGradient: {
     paddingHorizontal: 24,
     paddingVertical: 12,
     borderRadius: 24,
-    marginTop: 8,
+    alignItems: "center",
   },
   discoverBtnText: {
     color: "#FFFFFF",

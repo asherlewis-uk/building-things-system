@@ -220,7 +220,7 @@ export default function SettingsScreen() {
               <Switch
                 value={settings.hapticFeedback}
                 onValueChange={updateHapticFeedback}
-                trackColor={{ false: C.cardAlt, true: spectral.green }}
+                trackColor={{ false: C.cardAlt, true: C.teal }}
                 thumbColor="#fff"
               />
             }
