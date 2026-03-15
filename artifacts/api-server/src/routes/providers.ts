@@ -4,6 +4,7 @@ import {
   getProviderConfig,
   discoverOllamaModels,
   checkProviderConnectivity,
+  isAllowedEndpoint,
   type ProviderID,
 } from "../providers";
 
@@ -18,6 +19,10 @@ router.get("/providers", (_req, res) => {
 
 router.get("/providers/ollama/models", async (req, res) => {
   const endpoint = (req.query.endpoint as string) || undefined;
+  if (endpoint && !isAllowedEndpoint(endpoint)) {
+    res.status(400).json({ error: "Endpoint must point to localhost or private network", models: [] });
+    return;
+  }
   const models = await discoverOllamaModels(endpoint);
   res.json({ models });
 });

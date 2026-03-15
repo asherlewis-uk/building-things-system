@@ -173,23 +173,73 @@ export default function AIProviderScreen() {
       >
         <SectionHeader title="Provider" />
         <Surface variant="grouped" style={{ marginHorizontal: screenInsets.groupedHorizontal }}>
-          {providers.map((p, idx) => (
-            <ListRow
-              key={p.id}
-              icon={getProviderIcon(p.id)}
-              iconColor={p.available ? colors.tint : colors.tertiaryLabel}
-              title={p.name}
-              subtitle={p.available ? undefined : "Not configured"}
-              accessory="none"
-              onPress={() => handleSelectProvider(p.id)}
-              showSeparator={idx < providers.length - 1}
-              style={
-                settings.ai.provider === p.id
-                  ? { backgroundColor: colors.tintGhost }
-                  : undefined
-              }
-            />
-          ))}
+          {providers.map((p, idx) => {
+            const isSelected = settings.ai.provider === p.id;
+            const statusColor = p.available ? "#34C759" : "#FF3B30";
+            return (
+              <View key={p.id}>
+                <Pressable
+                  onPress={() => handleSelectProvider(p.id)}
+                  style={({ pressed }) => [
+                    styles.providerRow,
+                    {
+                      paddingHorizontal: sp.base,
+                      minHeight: 44,
+                      opacity: pressed ? 0.6 : 1,
+                    },
+                    isSelected ? { backgroundColor: colors.tintGhost } : undefined,
+                  ]}
+                  accessibilityRole="button"
+                  accessibilityLabel={`${p.name}${isSelected ? ", selected" : ""}${p.available ? ", available" : ", not configured"}`}
+                >
+                  <View
+                    style={[
+                      styles.providerIconBox,
+                      {
+                        backgroundColor: p.available
+                          ? colors.tintGhost
+                          : "rgba(255,59,48,0.12)",
+                        borderRadius: 7,
+                      },
+                    ]}
+                  >
+                    <Feather
+                      name={getProviderIcon(p.id)}
+                      size={16}
+                      color={p.available ? colors.tint : colors.tertiaryLabel}
+                    />
+                  </View>
+                  <View style={styles.providerTextCol}>
+                    <Text style={[t.body, { color: colors.label }]} numberOfLines={1}>
+                      {p.name}
+                    </Text>
+                    {!p.available && (
+                      <Text style={[t.caption1, { color: colors.secondaryLabel }]} numberOfLines={1}>
+                        Not configured
+                      </Text>
+                    )}
+                  </View>
+                  <View
+                    style={[
+                      styles.statusDot,
+                      { backgroundColor: statusColor },
+                    ]}
+                  />
+                  {isSelected && (
+                    <Feather name="check" size={16} color={colors.tint} />
+                  )}
+                </Pressable>
+                {idx < providers.length - 1 && (
+                  <View
+                    style={[
+                      styles.sep,
+                      { backgroundColor: colors.separator, marginLeft: 56 },
+                    ]}
+                  />
+                )}
+              </View>
+            );
+          })}
         </Surface>
 
         {needsEndpoint && (
@@ -445,10 +495,28 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 6,
   },
+  providerRow: {
+    flexDirection: "row" as const,
+    alignItems: "center" as const,
+    gap: 12,
+    paddingVertical: 6,
+  },
+  providerIconBox: {
+    width: 30,
+    height: 30,
+    alignItems: "center" as const,
+    justifyContent: "center" as const,
+  },
+  providerTextCol: {
+    flex: 1,
+    justifyContent: "center" as const,
+    gap: 2,
+  },
   statusDot: {
     width: 8,
     height: 8,
     borderRadius: 4,
+    marginRight: 4,
   },
   emptyModels: {
     paddingVertical: 20,

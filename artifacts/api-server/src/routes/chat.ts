@@ -47,9 +47,14 @@ router.post("/chat", async (req, res) => {
     res.setHeader("X-Accel-Buffering", "no");
     res.flushHeaders();
 
+    const tokenLimitParam =
+      validProvider === "ollama" || validProvider === "custom"
+        ? { max_tokens: 8192 }
+        : { max_completion_tokens: 8192 };
+
     const stream = await client.chat.completions.create({
       model: resolvedModel,
-      max_completion_tokens: 8192,
+      ...tokenLimitParam,
       messages: messages as Array<{
         role: "system" | "user" | "assistant";
         content: string;

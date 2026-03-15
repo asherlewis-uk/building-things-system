@@ -73,7 +73,7 @@ export function getProviderConfig(id: ProviderID): ProviderConfig | undefined {
   return PROVIDER_CONFIGS.find((p) => p.id === id);
 }
 
-function isAllowedEndpoint(url: string): boolean {
+export function isAllowedEndpoint(url: string): boolean {
   try {
     const parsed = new URL(url);
     const hostname = parsed.hostname.toLowerCase();
