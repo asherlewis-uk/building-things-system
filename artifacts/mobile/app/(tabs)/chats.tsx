@@ -12,11 +12,10 @@ import {
   View,
 } from "react-native";
 import { Swipeable } from "react-native-gesture-handler";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { ChatListItem } from "@/components/ChatListItem";
-import Colors, { spectral } from "@/constants/colors";
 import { useChats } from "@/context/ChatsContext";
+import { useTheme } from "@/src/theme/useTheme";
 import { getCharacterById } from "@/data/characters";
 
 function SwipeActions({
@@ -26,30 +25,34 @@ function SwipeActions({
   onArchive: () => void;
   onDelete: () => void;
 }) {
-  const C = Colors.dark;
+  const { colors, typography: t } = useTheme();
   return (
     <View style={styles.swipeActions}>
       <Pressable
         onPress={onArchive}
-        style={[styles.swipeBtn, { backgroundColor: C.teal }]}
+        style={[styles.swipeBtn, { backgroundColor: colors.tint }]}
+        accessibilityLabel="Archive conversation"
+        accessibilityRole="button"
       >
         <Feather name="archive" size={18} color="#fff" />
-        <Text style={styles.swipeBtnText}>Archive</Text>
+        <Text style={[t.caption2, styles.swipeBtnText]}>Archive</Text>
       </Pressable>
       <Pressable
         onPress={onDelete}
-        style={[styles.swipeBtn, { backgroundColor: C.error }]}
+        style={[styles.swipeBtn, { backgroundColor: colors.destructive }]}
+        accessibilityLabel="Delete conversation"
+        accessibilityRole="button"
       >
         <Feather name="trash-2" size={18} color="#fff" />
-        <Text style={styles.swipeBtnText}>Delete</Text>
+        <Text style={[t.caption2, styles.swipeBtnText]}>Delete</Text>
       </Pressable>
     </View>
   );
 }
 
 export default function ChatsScreen() {
-  const C = Colors.dark;
-  const insets = useSafeAreaInsets();
+  const { colors, spacing: sp, typography: t, gradients, screenInsets } =
+    useTheme();
   const { conversations, isLoaded, archiveConversation, deleteConversation } =
     useChats();
 
@@ -63,10 +66,7 @@ export default function ChatsScreen() {
   const handleArchive = (id: string, name: string) => {
     Alert.alert("Archive Chat", `Archive your conversation with ${name}?`, [
       { text: "Cancel", style: "cancel" },
-      {
-        text: "Archive",
-        onPress: () => archiveConversation(id),
-      },
+      { text: "Archive", onPress: () => archiveConversation(id) },
     ]);
   };
 
@@ -86,7 +86,7 @@ export default function ChatsScreen() {
   };
 
   return (
-    <View style={[styles.container, { backgroundColor: C.background }]}>
+    <View style={[styles.container, { backgroundColor: colors.systemBackground }]}>
       <ScrollView
         contentInsetAdjustmentBehavior="automatic"
         showsVerticalScrollIndicator={false}
@@ -95,44 +95,82 @@ export default function ChatsScreen() {
           { paddingTop: Platform.OS === "web" ? topPadding : 0 },
         ]}
       >
-        <View style={styles.header}>
-          <Text style={[styles.title, { color: C.text }]}>Chats</Text>
+        <View
+          style={[
+            styles.header,
+            { paddingHorizontal: screenInsets.horizontal },
+          ]}
+        >
+          <Text
+            style={[t.largeTitle, { color: colors.label }]}
+            accessibilityRole="header"
+          >
+            Chats
+          </Text>
         </View>
 
         {!isLoaded ? (
           <View style={styles.emptyContainer}>
-            <Text style={[styles.emptyText, { color: C.textSecondary }]}>
+            <Text style={[t.body, { color: colors.secondaryLabel }]}>
               Loading...
             </Text>
           </View>
         ) : validConversations.length === 0 ? (
           <View style={styles.emptyContainer}>
-            <View style={[styles.emptyIcon, { backgroundColor: C.card }]}>
-              <Feather name="message-circle" size={32} color={C.tealMuted} />
+            <View
+              style={[
+                styles.emptyIcon,
+                { backgroundColor: colors.secondarySystemBackground },
+              ]}
+            >
+              <Feather
+                name="message-circle"
+                size={32}
+                color={colors.tintMuted}
+              />
             </View>
-            <Text style={[styles.emptyTitle, { color: C.text }]}>
+            <Text
+              style={[t.title3, { color: colors.label }]}
+              accessibilityRole="header"
+            >
               No chats yet
             </Text>
-            <Text style={[styles.emptyText, { color: C.textSecondary }]}>
+            <Text
+              style={[
+                t.subheadline,
+                { color: colors.secondaryLabel, textAlign: "center" },
+              ]}
+            >
               Discover personas and start a conversation
             </Text>
             <Pressable
               onPress={() => router.push("/")}
               style={styles.discoverBtn}
+              accessibilityLabel="Browse personas"
+              accessibilityRole="button"
             >
               <LinearGradient
-                colors={[spectral.green, spectral.blue, spectral.violet]}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 0 }}
+                colors={gradients.spectral.colors}
+                start={gradients.spectral.start}
+                end={gradients.spectral.end}
                 style={styles.discoverBtnGradient}
               >
-                <Text style={styles.discoverBtnText}>Browse Personas</Text>
+                <Text
+                  style={[
+                    t.subheadline,
+                    { color: "#FFFFFF", fontFamily: "Inter_600SemiBold" },
+                  ]}
+                >
+                  Browse Personas
+                </Text>
               </LinearGradient>
             </Pressable>
           </View>
         ) : (
           <>
-            <View style={[styles.divider, { backgroundColor: C.border }]} />
+            <View
+              style={[styles.divider, { backgroundColor: colors.separator }]}
+            />
             {validConversations.map((conv) => {
               const char = getCharacterById(conv.characterId)!;
               return (
@@ -150,14 +188,16 @@ export default function ChatsScreen() {
                     )}
                     overshootRight={false}
                   >
-                    <View style={{ backgroundColor: C.background }}>
+                    <View
+                      style={{ backgroundColor: colors.systemBackground }}
+                    >
                       <ChatListItem conversation={conv} character={char} />
                     </View>
                   </Swipeable>
                   <View
                     style={[
                       styles.itemDivider,
-                      { backgroundColor: C.border, marginLeft: 84 },
+                      { backgroundColor: colors.separator, marginLeft: 84 },
                     ]}
                   />
                 </View>
@@ -180,16 +220,11 @@ const styles = StyleSheet.create({
     paddingBottom: 20,
   },
   header: {
-    paddingHorizontal: 20,
     paddingTop: 20,
     paddingBottom: 16,
   },
-  title: {
-    fontSize: 32,
-    fontFamily: "Inter_700Bold",
-  },
   divider: {
-    height: 1,
+    height: StyleSheet.hairlineWidth,
   },
   itemDivider: {
     height: StyleSheet.hairlineWidth,
@@ -208,16 +243,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     marginBottom: 8,
   },
-  emptyTitle: {
-    fontSize: 20,
-    fontFamily: "Inter_600SemiBold",
-  },
-  emptyText: {
-    fontSize: 14,
-    fontFamily: "Inter_400Regular",
-    textAlign: "center",
-    lineHeight: 20,
-  },
   discoverBtn: {
     borderRadius: 24,
     marginTop: 8,
@@ -228,11 +253,6 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     borderRadius: 24,
     alignItems: "center",
-  },
-  discoverBtnText: {
-    color: "#FFFFFF",
-    fontSize: 15,
-    fontFamily: "Inter_600SemiBold",
   },
   swipeActions: {
     flexDirection: "row",
@@ -245,7 +265,5 @@ const styles = StyleSheet.create({
   },
   swipeBtnText: {
     color: "#fff",
-    fontSize: 11,
-    fontFamily: "Inter_500Medium",
   },
 });

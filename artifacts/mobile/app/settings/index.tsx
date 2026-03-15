@@ -1,5 +1,4 @@
 import { Feather } from "@expo/vector-icons";
-import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import React from "react";
 import {
@@ -15,126 +14,27 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { SpectralToggle } from "@/components/SpectralToggle";
-import Colors, { spectral } from "@/constants/colors";
 import { useChats } from "@/context/ChatsContext";
 import { useSettings, type ThemePreference } from "@/context/SettingsContext";
-
-type FeatherIconName = React.ComponentProps<typeof Feather>["name"];
-
-type SettingRowProps = {
-  icon: FeatherIconName;
-  label: string;
-  value?: string;
-  onPress?: () => void;
-  destructive?: boolean;
-  rightElement?: React.ReactNode;
-};
-
-function SettingRow({
-  icon,
-  label,
-  value,
-  onPress,
-  destructive,
-  rightElement,
-}: SettingRowProps) {
-  const C = Colors.dark;
-  return (
-    <Pressable
-      onPress={onPress}
-      disabled={!onPress && !rightElement}
-      style={({ pressed }) => [
-        styles.settingRow,
-        { opacity: pressed && onPress ? 0.7 : 1 },
-      ]}
-    >
-      <View style={[styles.settingIcon, { backgroundColor: C.cardAlt }]}>
-        <Feather
-          name={icon}
-          size={16}
-          color={destructive ? C.error : C.teal}
-        />
-      </View>
-      <Text
-        style={[
-          styles.settingLabel,
-          { color: destructive ? C.error : C.text },
-        ]}
-      >
-        {label}
-      </Text>
-      <View style={styles.settingRight}>
-        {rightElement}
-        {!rightElement && value && (
-          <Text style={[styles.settingValue, { color: C.tealMuted }]}>
-            {value}
-          </Text>
-        )}
-        {!rightElement && onPress && !destructive && (
-          <Feather name="chevron-right" size={16} color={C.tealMuted} />
-        )}
-      </View>
-    </Pressable>
-  );
-}
-
-function ThemeSelector() {
-  const C = Colors.dark;
-  const { settings, updateTheme } = useSettings();
-  const options: { label: string; value: ThemePreference }[] = [
-    { label: "System", value: "system" },
-    { label: "Light", value: "light" },
-    { label: "Dark", value: "dark" },
-  ];
-
-  return (
-    <View style={styles.themeSelector}>
-      {options.map((opt) => {
-        const isSelected = settings.theme === opt.value;
-        return (
-          <Pressable
-            key={opt.value}
-            onPress={() => updateTheme(opt.value)}
-            style={styles.themeOption}
-          >
-            {isSelected ? (
-              <LinearGradient
-                colors={[spectral.green, spectral.blue, spectral.violet]}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-                style={styles.themeOptionSelected}
-              >
-                <Text style={[styles.themeLabel, { color: "#fff" }]}>
-                  {opt.label}
-                </Text>
-              </LinearGradient>
-            ) : (
-              <View
-                style={[
-                  styles.themeOptionInactive,
-                  { backgroundColor: C.cardAlt, borderColor: C.border },
-                ]}
-              >
-                <Text style={[styles.themeLabel, { color: C.tealDim }]}>
-                  {opt.label}
-                </Text>
-              </View>
-            )}
-          </Pressable>
-        );
-      })}
-    </View>
-  );
-}
+import { ListRow } from "@/src/components/ListRow";
+import { SectionHeader } from "@/src/components/SectionHeader";
+import { SegmentedControl } from "@/src/components/SegmentedControl";
+import { Surface } from "@/src/components/Surface";
+import { useTheme } from "@/src/theme/useTheme";
 
 const PRIVACY_URL = "https://persona.app/privacy";
 const TERMS_URL = "https://persona.app/terms";
 
+const themeOptions: { label: string; value: ThemePreference }[] = [
+  { label: "System", value: "system" },
+  { label: "Light", value: "light" },
+  { label: "Dark", value: "dark" },
+];
+
 export default function SettingsScreen() {
-  const C = Colors.dark;
+  const { colors, spacing: sp, typography: t, screenInsets } = useTheme();
   const insets = useSafeAreaInsets();
-  const { settings, updateHapticFeedback } = useSettings();
+  const { settings, updateTheme, updateHapticFeedback } = useSettings();
   const { clearAllConversations, exportAllData, archivedConversations } =
     useChats();
 
@@ -175,110 +75,116 @@ export default function SettingsScreen() {
     }
   };
 
-  const handleOpenLink = (url: string) => {
-    Linking.openURL(url);
-  };
-
   return (
-    <View style={[styles.container, { backgroundColor: C.background }]}>
+    <View style={[styles.container, { backgroundColor: colors.groupedBackground }]}>
       <View
         style={[
           styles.header,
           {
-            paddingTop: topPad + 8,
-            borderBottomColor: C.border,
+            paddingTop: topPad + sp.sm,
+            borderBottomColor: colors.separator,
           },
         ]}
       >
-        <Pressable onPress={() => router.back()} style={styles.backBtn}>
-          <Feather name="arrow-left" size={22} color={C.text} />
+        <Pressable
+          onPress={() => router.back()}
+          style={styles.backBtn}
+          accessibilityLabel="Go back"
+          accessibilityRole="button"
+        >
+          <Feather name="arrow-left" size={22} color={colors.label} />
         </Pressable>
-        <Text style={[styles.headerTitle, { color: C.text }]}>Settings</Text>
+        <Text style={[t.headline, { color: colors.label }]}>Settings</Text>
         <View style={styles.headerSpacer} />
       </View>
 
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
+        contentInsetAdjustmentBehavior="automatic"
       >
-        <Text style={[styles.sectionHeader, { color: C.tealMuted }]}>
-          GENERAL
-        </Text>
-        <View style={[styles.settingsGroup, { backgroundColor: C.card }]}>
-          <View style={styles.settingRow}>
-            <View style={[styles.settingIcon, { backgroundColor: C.cardAlt }]}>
-              <Feather name="sun" size={16} color={C.teal} />
-            </View>
-            <Text style={[styles.settingLabel, { color: C.text }]}>Theme</Text>
+        <SectionHeader title="General" />
+        <Surface variant="grouped" style={{ marginHorizontal: screenInsets.groupedHorizontal }}>
+          <View style={[styles.themeRow, { paddingHorizontal: sp.base }]}>
+            <Text style={[t.body, { color: colors.label, marginBottom: sp.sm }]}>
+              Theme
+            </Text>
+            <SegmentedControl
+              options={themeOptions}
+              selected={settings.theme}
+              onChange={updateTheme}
+            />
           </View>
-          <ThemeSelector />
-          <View style={[styles.rowDivider, { backgroundColor: C.border }]} />
-          <SettingRow
+          <View
+            style={[styles.sep, { backgroundColor: colors.separator, marginLeft: sp.base }]}
+          />
+          <ListRow
             icon="smartphone"
-            label="Haptic Feedback"
-            rightElement={
-              <SpectralToggle
-                value={settings.hapticFeedback}
-                onValueChange={updateHapticFeedback}
-              />
-            }
+            title="Haptic Feedback"
+            accessory="switch"
+            switchValue={settings.hapticFeedback}
+            onSwitchChange={updateHapticFeedback}
+            showSeparator={false}
           />
-        </View>
+        </Surface>
 
-        <Text style={[styles.sectionHeader, { color: C.tealMuted }]}>
-          PERSONALIZATION
-        </Text>
-        <View style={[styles.settingsGroup, { backgroundColor: C.card }]}>
-          <SettingRow
+        <SectionHeader title="Personalization" />
+        <Surface variant="grouped" style={{ marginHorizontal: screenInsets.groupedHorizontal }}>
+          <ListRow
             icon="edit-3"
-            label="Custom Instructions"
+            title="Custom Instructions"
+            accessory="disclosureIndicator"
             onPress={() => router.push("/settings/custom-instructions")}
+            showSeparator={false}
           />
-        </View>
+        </Surface>
 
-        <Text style={[styles.sectionHeader, { color: C.tealMuted }]}>
-          DATA & STORAGE
-        </Text>
-        <View style={[styles.settingsGroup, { backgroundColor: C.card }]}>
-          <SettingRow
+        <SectionHeader title="Data & Storage" />
+        <Surface variant="grouped" style={{ marginHorizontal: screenInsets.groupedHorizontal }}>
+          <ListRow
             icon="archive"
-            label="Archived Chats"
-            value={`${archivedConversations.length}`}
+            title="Archived Chats"
+            accessory="disclosureIndicator"
+            badgeText={`${archivedConversations.length}`}
             onPress={() => router.push("/settings/archived-chats")}
           />
-          <View style={[styles.rowDivider, { backgroundColor: C.border }]} />
-          <SettingRow
+          <ListRow
             icon="download"
-            label="Export Data"
+            title="Export Data"
+            accessory="disclosureIndicator"
             onPress={handleExport}
           />
-          <View style={[styles.rowDivider, { backgroundColor: C.border }]} />
-          <SettingRow
+          <ListRow
             icon="trash-2"
-            label="Clear All Chats"
+            title="Clear All Chats"
             destructive
             onPress={handleClearAll}
+            showSeparator={false}
           />
-        </View>
+        </Surface>
 
-        <Text style={[styles.sectionHeader, { color: C.tealMuted }]}>
-          ABOUT
-        </Text>
-        <View style={[styles.settingsGroup, { backgroundColor: C.card }]}>
-          <SettingRow icon="info" label="Version" value="1.0.0" />
-          <View style={[styles.rowDivider, { backgroundColor: C.border }]} />
-          <SettingRow
+        <SectionHeader title="About" />
+        <Surface variant="grouped" style={{ marginHorizontal: screenInsets.groupedHorizontal }}>
+          <ListRow
+            icon="info"
+            title="Version"
+            accessory="badge"
+            badgeText="1.0.0"
+          />
+          <ListRow
             icon="shield"
-            label="Privacy Policy"
-            onPress={() => handleOpenLink(PRIVACY_URL)}
+            title="Privacy Policy"
+            accessory="disclosureIndicator"
+            onPress={() => Linking.openURL(PRIVACY_URL)}
           />
-          <View style={[styles.rowDivider, { backgroundColor: C.border }]} />
-          <SettingRow
+          <ListRow
             icon="file-text"
-            label="Terms of Service"
-            onPress={() => handleOpenLink(TERMS_URL)}
+            title="Terms of Service"
+            accessory="disclosureIndicator"
+            onPress={() => Linking.openURL(TERMS_URL)}
+            showSeparator={false}
           />
-        </View>
+        </Surface>
 
         <View style={{ height: 60 }} />
       </ScrollView>
@@ -298,91 +204,22 @@ const styles = StyleSheet.create({
     borderBottomWidth: StyleSheet.hairlineWidth,
   },
   backBtn: {
-    width: 40,
-    height: 40,
+    width: 44,
+    height: 44,
     alignItems: "center",
     justifyContent: "center",
-    borderRadius: 20,
-  },
-  headerTitle: {
-    flex: 1,
-    textAlign: "center",
-    fontSize: 17,
-    fontFamily: "Inter_600SemiBold",
+    borderRadius: 22,
   },
   headerSpacer: {
-    width: 40,
+    width: 44,
   },
   scrollContent: {
     paddingBottom: 20,
   },
-  sectionHeader: {
-    fontSize: 11,
-    fontFamily: "Inter_600SemiBold",
-    letterSpacing: 1.2,
-    paddingHorizontal: 20,
-    paddingBottom: 8,
-    paddingTop: 20,
+  themeRow: {
+    paddingVertical: 12,
   },
-  settingsGroup: {
-    marginHorizontal: 16,
-    borderRadius: 16,
-    overflow: "hidden",
-  },
-  settingRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    gap: 12,
-  },
-  settingIcon: {
-    width: 32,
-    height: 32,
-    borderRadius: 8,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  settingLabel: {
-    flex: 1,
-    fontSize: 15,
-    fontFamily: "Inter_500Medium",
-  },
-  settingRight: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-  },
-  settingValue: {
-    fontSize: 14,
-    fontFamily: "Inter_400Regular",
-  },
-  rowDivider: {
+  sep: {
     height: StyleSheet.hairlineWidth,
-    marginLeft: 60,
-  },
-  themeSelector: {
-    flexDirection: "row",
-    paddingHorizontal: 16,
-    paddingBottom: 12,
-    gap: 8,
-  },
-  themeOption: {
-    flex: 1,
-  },
-  themeOptionSelected: {
-    borderRadius: 10,
-    paddingVertical: 8,
-    alignItems: "center",
-  },
-  themeOptionInactive: {
-    borderRadius: 10,
-    paddingVertical: 8,
-    alignItems: "center",
-    borderWidth: 1,
-  },
-  themeLabel: {
-    fontSize: 13,
-    fontFamily: "Inter_500Medium",
   },
 });

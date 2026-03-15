@@ -1,0 +1,136 @@
+## Goal (Expo / React Native)
+Build an **unbranded, packaged iOS-first app** in **Expo + React Native** that matches the provided screenshots’ *visual intent* while achieving a **native iOS feel**. This is **not** a web clone: implement **iOS-native navigation, tab bar, and settings list patterns** using React Native primitives and iOS conventions, then theme it.
+
+## Stack Constraints (must follow)
+- Framework: **Expo (latest stable) + React Native**
+- Navigation: **@react-navigation/native** + **native-stack** + **bottom-tabs**
+- Styling: token-driven (e.g., `StyleSheet` + tokens, or `nativewind`, or `tamagui`) — choose one and be consistent.
+- Icons: **SF Symbols via `expo-symbols`** (preferred) or `@expo/vector-icons` only if SF Symbols are not available.
+- Blur/materials: **expo-blur** for iOS materials (nav/tab surfaces).
+- Haptics: **expo-haptics**
+- Storage: **expo-sqlite** or **expo-secure-store** (as needed) — keep this local-first.
+- DO NOT implement this as a web UI (no “web-first” CSS assumptions).
+
+## Non-negotiables
+- iOS-native patterns first (nav/title collapse, tab bar material, grouped settings list).
+- Tokenized design system (color/opacity/typography/spacing/radius/elevation).
+- Every interactive element has: pressed/selected/disabled/loading + haptics + accessibility.
+
+---
+
+## A) Missing component context/texture — implement these 10 fixes (highest priority)
+
+1) **Design Tokens System**
+   - Create `src/theme/tokens.ts` defining:
+     - semantic colors (light/dark), opacity steps, typography scale, spacing scale, radii scale, elevation scale.
+   - All styles must consume tokens (no one-off magic numbers/colors).
+
+2) **Surface/Card Recipe**
+   - Create `Surface` + `Card` components with:
+     - fill + subtle border + optional inner shadow + elevation tiers.
+   - Variants: `default`, `featured`, `pressed`, `disabled`.
+
+3) **Gradient Specification**
+   - Define gradients as tokens: angle + stop colors + stop positions + opacity.
+   - Apply consistently to: featured tile, selected chip state, accent UI.
+
+4) **Interaction State Matrix**
+   - For each component (Chip, Tile, ListRow, SwitchRow, SegmentedControl):
+     - Implement `default / pressed / selected / disabled / loading`.
+   - Press feedback uses iOS-friendly patterns (opacity + subtle scale), not web-like hover.
+
+5) **Spacing & Layout Grid**
+   - Define spacing tokens (e.g., 4/8/12/16/20/24/32).
+   - Enforce consistent: screen padding, section padding, tile spacing, row heights.
+
+6) **Typography Scale Mapping**
+   - Map to iOS text roles:
+     - Large title (“Discover”), title, body, caption/meta, section headers.
+   - Provide fontSize/lineHeight/fontWeight/tracking per role (in tokens).
+
+7) **Scrolling Behaviors**
+   - Featured carousel: horizontal scroll with snap + “peek” + consistent spacing.
+   - Decide: filter chips sticky vs scroll-away; implement intentionally.
+
+8) **Component Variant Rules**
+   - Document when to use:
+     - `CardTile` vs `ListRow` vs `Chip` vs `SectionHeader`.
+   - Avoid mixing patterns arbitrarily.
+
+9) **Zero/Empty/Error States**
+   - Define behavior for:
+     - Archived Chats = 0, no personas, no results, offline, fetch error.
+   - Create explicit empty screens, disable actions appropriately.
+
+10) **Accessibility Contract**
+   - Minimum hit target 44pt.
+   - VoiceOver labels/hints for icons and toggles.
+   - Respect Reduce Motion + Dynamic Type scaling.
+
+---
+
+## B) iOS-native feel — implement these 10 fixes (highest priority)
+
+11) **Native Navigation: Large Title + Collapse**
+   - Use `createNativeStackNavigator` with Large Title behavior for Discover.
+   - Title collapses on scroll; back chevron + iOS edge-swipe gesture must work.
+
+12) **Native Tab Bar**
+   - Use `createBottomTabNavigator` with iOS-like sizing and safe-area.
+   - Tab bar background uses iOS material blur via `expo-blur`.
+   - Active tint uses a single accent (tokenized), not per-tab neon gradients.
+
+13) **Settings as Grouped List**
+   - Implement Settings using iOS grouped list conventions:
+     - section headers, consistent row heights, separators/insets, right accessories.
+   - Avoid “floating card panels” unless they still read as iOS grouped style.
+
+14) **SF Symbols (iOS-first icons)**
+   - Use `expo-symbols` where possible.
+   - Match symbol weight/size to iOS tab bar and list rows.
+
+15) **Semantic Colors + Materials**
+   - Use semantic tokens modeled after iOS:
+     - `systemBackground`, `secondarySystemBackground`, `label`, `secondaryLabel`, etc.
+   - Nav/tab surfaces use blur materials; content uses proper contrast.
+
+16) **UISwitch Fidelity**
+   - Use React Native `Switch` and configure colors per theme tokens.
+   - Do not replace the switch track with custom gradients if it harms recognizability.
+   - Haptics toggle must actually gate haptic triggers.
+
+17) **Segmented Control Fidelity**
+   - Implement an iOS-feeling segmented control:
+     - proper thumb animation, padding, press states, accessibility.
+   - Prefer a library that matches iOS (or build a careful custom) but keep it faithful.
+
+18) **Touch Feedback + Haptics**
+   - Use `Pressable` with iOS-like pressed feedback.
+   - Use `expo-haptics` for selections, toggles, and important actions (respect toggle setting).
+
+19) **Native Scroll Physics**
+   - Use standard `ScrollView`/`FlatList` behaviors with iOS bounce.
+   - Sticky headers only where they make sense (section headers or filters).
+
+20) **Hit Targets + Alignment**
+   - Enforce 44pt minimum for chips, rows, icons, toggles.
+   - Use iOS-standard leading/trailing insets; align accessories consistently.
+
+---
+
+## Deliverables (must produce)
+- `src/theme/tokens.ts` + `src/theme/useTheme.ts` (or equivalent)
+- Reusable components:
+  - `Surface`, `Card`, `Chip`, `Tile`, `ListRow`, `SectionHeader`, `SegmentedControl`
+- Screens:
+  - Discover (Large Title + carousel + filters + persona grid/list)
+  - Settings (grouped list + Theme segmented + Haptics toggle + Archived + Export)
+- A `UI_FIDELITY_CHECKLIST.md` documenting:
+  - token usage, iOS-native patterns, component states, accessibility
+
+## Acceptance Criteria (definition of done)
+- Navigation feels iOS-native (large title, swipe-back, proper header behavior).
+- Tab bar looks/behaves like iOS (material, spacing, tinting, safe area).
+- Settings reads like iOS grouped settings (not “web card UI”).
+- Every component has states + accessibility + haptics gating.
+- No hardcoded styling outside tokens except rare layout necessities.

@@ -19,13 +19,13 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { CharacterAvatar } from "@/components/CharacterAvatar";
 import { MessageBubble } from "@/components/MessageBubble";
 import { TypingIndicator } from "@/components/TypingIndicator";
-import Colors, { spectral } from "@/constants/colors";
 import {
   generateConversationId,
   useChats,
   type Message,
 } from "@/context/ChatsContext";
 import { useSettings } from "@/context/SettingsContext";
+import { useTheme } from "@/src/theme/useTheme";
 import { getCharacterById } from "@/data/characters";
 import { getApiUrl } from "@/lib/api";
 
@@ -36,7 +36,8 @@ function genId(): string {
 }
 
 export default function ChatScreen() {
-  const C = Colors.dark;
+  const { colors, spacing: sp, typography: t, radii, gradients, hitTarget } =
+    useTheme();
   const insets = useSafeAreaInsets();
   const { id } = useLocalSearchParams<{ id: string }>();
   const { getConversation, upsertConversation } = useChats();
@@ -172,7 +173,10 @@ export default function ChatScreen() {
                   const updated = [...prev];
                   const last = updated[updated.length - 1];
                   if (last?.id === assistantId) {
-                    updated[updated.length - 1] = { ...last, content: fullContent };
+                    updated[updated.length - 1] = {
+                      ...last,
+                      content: fullContent,
+                    };
                   }
                   return updated;
                 });
@@ -215,8 +219,12 @@ export default function ChatScreen() {
 
   if (!character) {
     return (
-      <View style={[styles.container, { backgroundColor: C.background }]}>
-        <Text style={{ color: C.text }}>Character not found.</Text>
+      <View
+        style={[styles.container, { backgroundColor: colors.systemBackground }]}
+      >
+        <Text style={[t.body, { color: colors.label }]}>
+          Character not found.
+        </Text>
       </View>
     );
   }
@@ -226,7 +234,7 @@ export default function ChatScreen() {
 
   return (
     <KeyboardAvoidingView
-      style={[styles.container, { backgroundColor: C.background }]}
+      style={[styles.container, { backgroundColor: colors.systemBackground }]}
       behavior="padding"
       keyboardVerticalOffset={0}
     >
@@ -235,13 +243,18 @@ export default function ChatScreen() {
           styles.header,
           {
             paddingTop: (Platform.OS === "web" ? 67 : insets.top) + 8,
-            backgroundColor: C.background,
-            borderBottomColor: C.border,
+            backgroundColor: colors.systemBackground,
+            borderBottomColor: colors.separator,
           },
         ]}
       >
-        <Pressable onPress={() => router.back()} style={styles.backBtn}>
-          <Feather name="arrow-left" size={22} color={C.text} />
+        <Pressable
+          onPress={() => router.back()}
+          style={styles.backBtn}
+          accessibilityLabel="Go back"
+          accessibilityRole="button"
+        >
+          <Feather name="arrow-left" size={22} color={colors.label} />
         </Pressable>
         <View style={styles.headerCenter}>
           <CharacterAvatar
@@ -250,8 +263,15 @@ export default function ChatScreen() {
             size={36}
           />
           <View>
-            <Text style={[styles.headerName, { color: C.text }]}>{character.name}</Text>
-            <Text style={[styles.headerStatus, { color: C.teal }]}>Online</Text>
+            <Text
+              style={[
+                t.callout,
+                { color: colors.label, fontFamily: "Inter_600SemiBold" },
+              ]}
+            >
+              {character.name}
+            </Text>
+            <Text style={[t.caption2, { color: colors.tint }]}>Online</Text>
           </View>
         </View>
         <View style={styles.headerRight} />
@@ -273,24 +293,33 @@ export default function ChatScreen() {
         style={[
           styles.inputContainer,
           {
-            backgroundColor: C.background,
-            borderTopColor: C.border,
+            backgroundColor: colors.systemBackground,
+            borderTopColor: colors.separator,
             paddingBottom: bottomPad + 8,
           },
         ]}
       >
-        <View style={[styles.inputRow, { backgroundColor: C.card }]}>
+        <View
+          style={[
+            styles.inputRow,
+            {
+              backgroundColor: colors.secondarySystemBackground,
+              borderRadius: radii.full,
+            },
+          ]}
+        >
           <TextInput
             ref={inputRef}
             value={inputText}
             onChangeText={setInputText}
             placeholder={`Message ${character.name}...`}
-            placeholderTextColor={C.textMuted}
-            style={[styles.input, { color: C.text }]}
+            placeholderTextColor={colors.placeholderText}
+            style={[styles.input, t.body, { color: colors.label }]}
             multiline
             blurOnSubmit={false}
             onSubmitEditing={handleSend}
             editable={!isStreaming}
+            accessibilityLabel={`Message ${character.name}`}
           />
           <Pressable
             onPress={() => {
@@ -302,19 +331,32 @@ export default function ChatScreen() {
               styles.sendBtn,
               { opacity: pressed ? 0.8 : 1 },
             ]}
+            accessibilityLabel="Send message"
+            accessibilityRole="button"
           >
             {inputText.trim() && !isStreaming ? (
               <LinearGradient
-                colors={[spectral.green, spectral.blue, spectral.violet]}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
+                colors={
+                  gradients.spectralDiagonal.colors
+                }
+                start={gradients.spectralDiagonal.start}
+                end={gradients.spectralDiagonal.end}
                 style={styles.sendGradient}
               >
                 <Feather name="arrow-up" size={18} color="#fff" />
               </LinearGradient>
             ) : (
-              <View style={[styles.sendGradient, { backgroundColor: C.card }]}>
-                <Feather name="arrow-up" size={18} color={C.textMuted} />
+              <View
+                style={[
+                  styles.sendGradient,
+                  { backgroundColor: colors.fill },
+                ]}
+              >
+                <Feather
+                  name="arrow-up"
+                  size={18}
+                  color={colors.tertiaryLabel}
+                />
               </View>
             )}
           </Pressable>
@@ -336,11 +378,11 @@ const styles = StyleSheet.create({
     borderBottomWidth: StyleSheet.hairlineWidth,
   },
   backBtn: {
-    width: 40,
-    height: 40,
+    width: 44,
+    height: 44,
     alignItems: "center",
     justifyContent: "center",
-    borderRadius: 20,
+    borderRadius: 22,
   },
   headerCenter: {
     flex: 1,
@@ -350,15 +392,7 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   headerRight: {
-    width: 40,
-  },
-  headerName: {
-    fontSize: 16,
-    fontFamily: "Inter_600SemiBold",
-  },
-  headerStatus: {
-    fontSize: 11,
-    fontFamily: "Inter_400Regular",
+    width: 44,
   },
   messageList: {
     paddingVertical: 12,
@@ -371,7 +405,6 @@ const styles = StyleSheet.create({
   inputRow: {
     flexDirection: "row",
     alignItems: "flex-end",
-    borderRadius: 24,
     paddingLeft: 16,
     paddingRight: 6,
     paddingVertical: 6,
@@ -379,23 +412,20 @@ const styles = StyleSheet.create({
   },
   input: {
     flex: 1,
-    fontSize: 15,
-    fontFamily: "Inter_400Regular",
     maxHeight: 120,
     paddingTop: 8,
     paddingBottom: 8,
-    lineHeight: 22,
   },
   sendBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     overflow: "hidden",
   },
   sendGradient: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     alignItems: "center",
     justifyContent: "center",
   },

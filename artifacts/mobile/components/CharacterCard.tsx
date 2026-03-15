@@ -4,7 +4,7 @@ import React from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
 import { CharacterAvatar } from "@/components/CharacterAvatar";
-import Colors from "@/constants/colors";
+import { useTheme } from "@/src/theme/useTheme";
 import type { Character } from "@/data/characters";
 
 type Props = {
@@ -13,7 +13,7 @@ type Props = {
 };
 
 export function CharacterCard({ character, style }: Props) {
-  const C = Colors.dark;
+  const { colors, typography: t, radii, spacing: sp, hitTarget } = useTheme();
 
   const handlePress = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -25,9 +25,15 @@ export function CharacterCard({ character, style }: Props) {
       onPress={handlePress}
       style={({ pressed }) => [
         styles.card,
-        { backgroundColor: C.card, opacity: pressed ? 0.85 : 1 },
+        {
+          backgroundColor: colors.secondarySystemBackground,
+          borderRadius: radii.lg,
+          opacity: pressed ? 0.85 : 1,
+        },
         style,
       ]}
+      accessibilityLabel={`${character.name}: ${character.tagline}`}
+      accessibilityRole="button"
     >
       <CharacterAvatar
         colors={character.avatarColors}
@@ -35,13 +41,19 @@ export function CharacterCard({ character, style }: Props) {
         size={64}
       />
       <View style={styles.info}>
-        <Text style={[styles.name, { color: C.text }]} numberOfLines={1}>
+        <Text
+          style={[t.subheadline, { color: colors.label, fontFamily: "Inter_600SemiBold" }]}
+          numberOfLines={1}
+        >
           {character.name}
         </Text>
-        <Text style={[styles.tagline, { color: C.textSecondary }]} numberOfLines={2}>
+        <Text
+          style={[t.caption2, { color: colors.secondaryLabel }]}
+          numberOfLines={2}
+        >
           {character.tagline}
         </Text>
-        <Text style={[styles.count, { color: C.textMuted }]}>
+        <Text style={[t.caption2, { color: colors.tertiaryLabel }]}>
           {character.messageCount} chats
         </Text>
       </View>
@@ -51,7 +63,6 @@ export function CharacterCard({ character, style }: Props) {
 
 const styles = StyleSheet.create({
   card: {
-    borderRadius: 16,
     padding: 14,
     gap: 10,
     alignItems: "center",
@@ -59,20 +70,5 @@ const styles = StyleSheet.create({
   info: {
     alignItems: "center",
     gap: 3,
-  },
-  name: {
-    fontSize: 14,
-    fontFamily: "Inter_600SemiBold",
-    textAlign: "center",
-  },
-  tagline: {
-    fontSize: 11,
-    fontFamily: "Inter_400Regular",
-    textAlign: "center",
-    lineHeight: 15,
-  },
-  count: {
-    fontSize: 10,
-    fontFamily: "Inter_400Regular",
   },
 });

@@ -2,7 +2,7 @@ import { Feather } from "@expo/vector-icons";
 import React from "react";
 import { StyleSheet, TextInput, View } from "react-native";
 
-import Colors from "@/constants/colors";
+import { useTheme } from "@/src/theme/useTheme";
 
 type Props = {
   value: string;
@@ -11,22 +11,38 @@ type Props = {
   autoFocus?: boolean;
 };
 
-export function SearchBar({ value, onChangeText, placeholder = "Search personas...", autoFocus }: Props) {
-  const C = Colors.dark;
+export function SearchBar({
+  value,
+  onChangeText,
+  placeholder = "Search personas...",
+  autoFocus,
+}: Props) {
+  const { colors, radii, hitTarget, typography: t } = useTheme();
 
   return (
-    <View style={[styles.container, { backgroundColor: C.card, borderColor: C.border }]}>
-      <Feather name="search" size={16} color={C.textMuted} />
+    <View
+      style={[
+        styles.container,
+        {
+          backgroundColor: colors.fill,
+          borderRadius: radii.md,
+          minHeight: hitTarget.minimum,
+        },
+      ]}
+      accessibilityRole="search"
+    >
+      <Feather name="search" size={16} color={colors.placeholderText} />
       <TextInput
         value={value}
         onChangeText={onChangeText}
         placeholder={placeholder}
-        placeholderTextColor={C.textMuted}
-        style={[styles.input, { color: C.text }]}
+        placeholderTextColor={colors.placeholderText}
+        style={[styles.input, t.body, { color: colors.label }]}
         autoFocus={autoFocus}
         returnKeyType="search"
         autoCorrect={false}
         autoCapitalize="none"
+        accessibilityLabel={placeholder}
       />
     </View>
   );
@@ -38,14 +54,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 10,
     paddingHorizontal: 14,
-    paddingVertical: 11,
-    borderRadius: 12,
-    borderWidth: 1,
   },
   input: {
     flex: 1,
-    fontSize: 15,
-    fontFamily: "Inter_400Regular",
     padding: 0,
   },
 });

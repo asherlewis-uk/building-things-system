@@ -5,7 +5,7 @@ import React from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
 import { CharacterAvatar } from "@/components/CharacterAvatar";
-import Colors from "@/constants/colors";
+import { useTheme } from "@/src/theme/useTheme";
 import type { Character } from "@/data/characters";
 
 type Props = {
@@ -13,7 +13,7 @@ type Props = {
 };
 
 export function FeaturedBanner({ character }: Props) {
-  const C = Colors.dark;
+  const { colors, typography: t, radii, spacing: sp } = useTheme();
 
   const handlePress = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
@@ -23,29 +23,58 @@ export function FeaturedBanner({ character }: Props) {
   return (
     <Pressable
       onPress={handlePress}
-      style={({ pressed }) => [styles.container, { opacity: pressed ? 0.9 : 1 }]}
+      style={({ pressed }) => [
+        styles.container,
+        {
+          backgroundColor: colors.secondarySystemBackground,
+          borderRadius: radii.xl,
+          opacity: pressed ? 0.9 : 1,
+        },
+      ]}
+      accessibilityLabel={`Featured persona: ${character.name}. ${character.tagline}`}
+      accessibilityRole="button"
     >
       <LinearGradient
-        colors={[character.avatarColors[0] + "99", character.avatarColors[1] + "55", "transparent"]}
+        colors={[
+          character.avatarColors[0] + "99",
+          character.avatarColors[1] + "55",
+          "transparent",
+        ]}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={StyleSheet.absoluteFill}
       />
-      <View style={styles.inner}>
+      <View style={[styles.inner, { padding: sp.lg, gap: sp.base }]}>
         <CharacterAvatar
           colors={character.avatarColors}
           emoji={character.avatarEmoji}
           size={80}
         />
         <View style={styles.textContainer}>
-          <View style={styles.badge}>
-            <Text style={styles.badgeText}>FEATURED</Text>
+          <View
+            style={[
+              styles.badge,
+              {
+                backgroundColor: colors.tintGhost,
+                borderColor: colors.tintSubtle,
+                borderRadius: radii.xs + 2,
+              },
+            ]}
+          >
+            <Text style={[styles.badgeText, { color: colors.tint }]}>
+              FEATURED
+            </Text>
           </View>
-          <Text style={[styles.name, { color: C.text }]}>{character.name}</Text>
-          <Text style={[styles.tagline, { color: C.textSecondary }]} numberOfLines={2}>
+          <Text style={[t.title2, { color: colors.label }]}>
+            {character.name}
+          </Text>
+          <Text
+            style={[t.footnote, { color: colors.secondaryLabel }]}
+            numberOfLines={2}
+          >
             {character.tagline}
           </Text>
-          <Text style={[styles.count, { color: C.textMuted }]}>
+          <Text style={[t.caption2, { color: colors.tertiaryLabel }]}>
             {character.messageCount} chats
           </Text>
         </View>
@@ -56,49 +85,27 @@ export function FeaturedBanner({ character }: Props) {
 
 const styles = StyleSheet.create({
   container: {
-    borderRadius: 20,
     overflow: "hidden",
-    backgroundColor: "#1C1C1E",
-    marginHorizontal: 16,
+    marginHorizontal: 0,
   },
   inner: {
     flexDirection: "row",
     alignItems: "center",
-    padding: 20,
-    gap: 16,
   },
   textContainer: {
     flex: 1,
     gap: 4,
   },
   badge: {
-    backgroundColor: "rgba(124,58,237,0.3)",
     paddingHorizontal: 8,
     paddingVertical: 3,
-    borderRadius: 6,
     alignSelf: "flex-start",
     marginBottom: 4,
     borderWidth: 1,
-    borderColor: "rgba(124,58,237,0.5)",
   },
   badgeText: {
-    color: "#A855F7",
     fontSize: 9,
     fontFamily: "Inter_700Bold",
     letterSpacing: 1.2,
-  },
-  name: {
-    fontSize: 22,
-    fontFamily: "Inter_700Bold",
-  },
-  tagline: {
-    fontSize: 13,
-    fontFamily: "Inter_400Regular",
-    lineHeight: 18,
-  },
-  count: {
-    fontSize: 11,
-    fontFamily: "Inter_400Regular",
-    marginTop: 2,
   },
 });

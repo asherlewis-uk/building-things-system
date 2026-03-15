@@ -1,7 +1,7 @@
 import React from "react";
 import { StyleSheet, Text, View } from "react-native";
 
-import Colors from "@/constants/colors";
+import { useTheme } from "@/src/theme/useTheme";
 import type { Message } from "@/context/ChatsContext";
 
 type Props = {
@@ -9,25 +9,28 @@ type Props = {
 };
 
 export function MessageBubble({ message }: Props) {
-  const C = Colors.dark;
+  const { colors, typography: t, radii } = useTheme();
   const isUser = message.role === "user";
 
   return (
-    <View style={[styles.row, isUser ? styles.rowUser : styles.rowAssistant]}>
+    <View
+      style={[styles.row, isUser ? styles.rowUser : styles.rowAssistant]}
+      accessibilityRole="text"
+      accessibilityLabel={`${isUser ? "You" : "Assistant"}: ${message.content}`}
+    >
       <View
         style={[
           styles.bubble,
-          isUser
-            ? [styles.userBubble, { backgroundColor: C.teal }]
-            : [styles.assistantBubble, { backgroundColor: C.card }],
+          {
+            borderRadius: radii.xxl - 6,
+            backgroundColor: isUser
+              ? colors.tint
+              : colors.secondarySystemBackground,
+          },
+          isUser ? styles.userBubble : styles.assistantBubble,
         ]}
       >
-        <Text
-          style={[
-            styles.text,
-            { color: isUser ? "#FFFFFF" : C.text },
-          ]}
-        >
+        <Text style={[t.body, { color: isUser ? "#FFFFFF" : colors.label }]}>
           {message.content}
         </Text>
       </View>
@@ -49,7 +52,6 @@ const styles = StyleSheet.create({
   },
   bubble: {
     maxWidth: "80%",
-    borderRadius: 18,
     paddingHorizontal: 14,
     paddingVertical: 10,
   },
@@ -58,10 +60,5 @@ const styles = StyleSheet.create({
   },
   assistantBubble: {
     borderBottomLeftRadius: 4,
-  },
-  text: {
-    fontSize: 15,
-    fontFamily: "Inter_400Regular",
-    lineHeight: 22,
   },
 });

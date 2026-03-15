@@ -8,7 +8,7 @@ import React from "react";
 import { Platform, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import Colors from "@/constants/colors";
+import { useTheme } from "@/src/theme/useTheme";
 
 function NativeTabLayout() {
   return (
@@ -34,7 +34,7 @@ function NativeTabLayout() {
 }
 
 function ClassicTabLayout() {
-  const C = Colors.dark;
+  const { colors } = useTheme();
   const insets = useSafeAreaInsets();
   const isIOS = Platform.OS === "ios";
   const isWeb = Platform.OS === "web";
@@ -43,13 +43,13 @@ function ClassicTabLayout() {
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: C.teal,
-        tabBarInactiveTintColor: C.tealMuted,
+        tabBarActiveTintColor: colors.tint,
+        tabBarInactiveTintColor: colors.secondaryLabel,
         tabBarStyle: {
           position: "absolute",
-          backgroundColor: isIOS ? "transparent" : C.surface,
-          borderTopWidth: isWeb ? 1 : 0,
-          borderTopColor: C.border,
+          backgroundColor: isIOS ? "transparent" : colors.secondarySystemBackground,
+          borderTopWidth: isWeb ? StyleSheet.hairlineWidth : 0,
+          borderTopColor: colors.separator,
           elevation: 0,
           paddingBottom: insets.bottom,
           ...(isWeb ? { height: 84 } : {}),
@@ -62,7 +62,12 @@ function ClassicTabLayout() {
               style={StyleSheet.absoluteFill}
             />
           ) : isWeb ? (
-            <View style={[StyleSheet.absoluteFill, { backgroundColor: C.surface }]} />
+            <View
+              style={[
+                StyleSheet.absoluteFill,
+                { backgroundColor: colors.secondarySystemBackground },
+              ]}
+            />
           ) : null,
       }}
     >

@@ -14,7 +14,7 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { CharacterAvatar } from "@/components/CharacterAvatar";
-import Colors from "@/constants/colors";
+import { useTheme } from "@/src/theme/useTheme";
 import {
   generateConversationId,
   generateMessageId,
@@ -23,7 +23,8 @@ import {
 import { getCharacterById } from "@/data/characters";
 
 export default function CharacterDetailScreen() {
-  const C = Colors.dark;
+  const { colors, spacing: sp, typography: t, radii, gradients, hitTarget } =
+    useTheme();
   const insets = useSafeAreaInsets();
   const { id } = useLocalSearchParams<{ id: string }>();
   const { getConversation, upsertConversation } = useChats();
@@ -32,8 +33,12 @@ export default function CharacterDetailScreen() {
 
   if (!character) {
     return (
-      <View style={[styles.container, { backgroundColor: C.background }]}>
-        <Text style={{ color: C.text }}>Character not found.</Text>
+      <View
+        style={[styles.container, { backgroundColor: colors.systemBackground }]}
+      >
+        <Text style={[t.body, { color: colors.label }]}>
+          Character not found.
+        </Text>
       </View>
     );
   }
@@ -68,23 +73,31 @@ export default function CharacterDetailScreen() {
   const topPad = Platform.OS === "web" ? 67 : insets.top;
 
   return (
-    <View style={[styles.container, { backgroundColor: C.background }]}>
+    <View
+      style={[styles.container, { backgroundColor: colors.systemBackground }]}
+    >
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
-        {/* Hero */}
-        <View style={[styles.hero, { paddingTop: topPad + 16 }]}>
+        <View style={[styles.hero, { paddingTop: topPad + sp.base }]}>
           <LinearGradient
             colors={[character.avatarColors[0] + "44", "transparent"]}
             style={StyleSheet.absoluteFill}
           />
-          {/* Back button */}
           <Pressable
             onPress={() => router.back()}
-            style={[styles.backBtn, { backgroundColor: C.card }]}
+            style={[
+              styles.backBtn,
+              {
+                backgroundColor: colors.secondarySystemBackground,
+                top: topPad,
+              },
+            ]}
+            accessibilityLabel="Go back"
+            accessibilityRole="button"
           >
-            <Feather name="arrow-left" size={20} color={C.text} />
+            <Feather name="arrow-left" size={20} color={colors.label} />
           </Pressable>
 
           <CharacterAvatar
@@ -92,56 +105,102 @@ export default function CharacterDetailScreen() {
             emoji={character.avatarEmoji}
             size={100}
           />
-          <Text style={[styles.name, { color: C.text }]}>{character.name}</Text>
-          <Text style={[styles.tagline, { color: C.textSecondary }]}>
+          <Text style={[t.title1, { color: colors.label, marginTop: sp.sm }]}>
+            {character.name}
+          </Text>
+          <Text
+            style={[
+              t.subheadline,
+              { color: colors.secondaryLabel, textAlign: "center" },
+            ]}
+          >
             {character.tagline}
           </Text>
 
-          {/* Category & count */}
           <View style={styles.metaRow}>
-            <View style={[styles.badge, { backgroundColor: C.card, borderColor: C.border }]}>
-              <Text style={[styles.badgeText, { color: C.textSecondary }]}>
+            <View
+              style={[
+                styles.badge,
+                {
+                  backgroundColor: colors.secondarySystemBackground,
+                  borderColor: colors.separator,
+                  borderRadius: radii.full,
+                },
+              ]}
+            >
+              <Text style={[t.caption1, { color: colors.secondaryLabel }]}>
                 {character.category}
               </Text>
             </View>
-            <View style={[styles.badge, { backgroundColor: C.card, borderColor: C.border }]}>
-              <Feather name="message-circle" size={12} color={C.textMuted} />
-              <Text style={[styles.badgeText, { color: C.textSecondary }]}>
+            <View
+              style={[
+                styles.badge,
+                {
+                  backgroundColor: colors.secondarySystemBackground,
+                  borderColor: colors.separator,
+                  borderRadius: radii.full,
+                },
+              ]}
+            >
+              <Feather
+                name="message-circle"
+                size={12}
+                color={colors.tertiaryLabel}
+              />
+              <Text style={[t.caption1, { color: colors.secondaryLabel }]}>
                 {character.messageCount}
               </Text>
             </View>
           </View>
         </View>
 
-        {/* Description */}
-        <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: C.text }]}>About</Text>
-          <Text style={[styles.description, { color: C.textSecondary }]}>
+        <View
+          style={[
+            styles.section,
+            { paddingHorizontal: screenInsets(sp).horizontal },
+          ]}
+        >
+          <Text style={[t.headline, { color: colors.label }]}>About</Text>
+          <Text style={[t.body, { color: colors.secondaryLabel }]}>
             {character.description}
           </Text>
         </View>
 
-        {/* Tags */}
-        <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: C.text }]}>Tags</Text>
+        <View
+          style={[
+            styles.section,
+            { paddingHorizontal: screenInsets(sp).horizontal },
+          ]}
+        >
+          <Text style={[t.headline, { color: colors.label }]}>Tags</Text>
           <View style={styles.tagsRow}>
             {character.tags.map((tag) => (
               <View
                 key={tag}
                 style={[
                   styles.tag,
-                  { backgroundColor: C.tealGhost, borderColor: C.tealSubtle },
+                  {
+                    backgroundColor: colors.tintGhost,
+                    borderColor: colors.tintSubtle,
+                    borderRadius: radii.sm,
+                  },
                 ]}
               >
-                <Text style={[styles.tagText, { color: C.tealDim }]}>{tag}</Text>
+                <Text style={[t.footnote, { color: colors.tintDim }]}>
+                  {tag}
+                </Text>
               </View>
             ))}
           </View>
         </View>
 
-        {/* Creator */}
-        <View style={styles.section}>
-          <Text style={[styles.creatorLabel, { color: C.textMuted }]}>
+        <View
+          style={[
+            styles.section,
+            { paddingHorizontal: screenInsets(sp).horizontal },
+          ]}
+        >
+          <Text style={[t.footnote, { color: colors.tertiaryLabel }]}>
             Created by {character.creator}
           </Text>
         </View>
@@ -149,13 +208,14 @@ export default function CharacterDetailScreen() {
         <View style={{ height: 120 }} />
       </ScrollView>
 
-      {/* Sticky CTA */}
       <View
         style={[
           styles.ctaContainer,
           {
-            backgroundColor: C.background,
-            paddingBottom: insets.bottom + (Platform.OS === "web" ? 34 : 0) + 12,
+            backgroundColor: colors.systemBackground,
+            borderTopColor: colors.separator,
+            paddingBottom:
+              insets.bottom + (Platform.OS === "web" ? 34 : 0) + 12,
           },
         ]}
       >
@@ -163,22 +223,35 @@ export default function CharacterDetailScreen() {
           onPress={handleStartChat}
           style={({ pressed }) => [
             styles.startChatBtn,
-            { opacity: pressed ? 0.85 : 1 },
+            { opacity: pressed ? 0.85 : 1, borderRadius: radii.lg },
           ]}
+          accessibilityLabel={`Start chat with ${character.name}`}
+          accessibilityRole="button"
         >
           <LinearGradient
-            colors={["#7C3AED", "#A855F7"]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
+            colors={gradients.spectral.colors}
+            start={gradients.spectral.start}
+            end={gradients.spectral.end}
             style={styles.startChatGradient}
           >
             <Feather name="message-circle" size={18} color="#fff" />
-            <Text style={styles.startChatText}>Start Chat</Text>
+            <Text
+              style={[
+                t.headline,
+                { color: "#FFFFFF" },
+              ]}
+            >
+              Start Chat
+            </Text>
           </LinearGradient>
         </Pressable>
       </View>
     </View>
   );
+}
+
+function screenInsets(sp: { base: number }) {
+  return { horizontal: sp.base + 4 };
 }
 
 const styles = StyleSheet.create({
@@ -197,26 +270,13 @@ const styles = StyleSheet.create({
   },
   backBtn: {
     position: "absolute",
-    top: 16,
     left: 16,
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     alignItems: "center",
     justifyContent: "center",
     zIndex: 10,
-  },
-  name: {
-    fontSize: 28,
-    fontFamily: "Inter_700Bold",
-    marginTop: 8,
-    textAlign: "center",
-  },
-  tagline: {
-    fontSize: 15,
-    fontFamily: "Inter_400Regular",
-    textAlign: "center",
-    lineHeight: 22,
   },
   metaRow: {
     flexDirection: "row",
@@ -229,26 +289,11 @@ const styles = StyleSheet.create({
     gap: 4,
     paddingHorizontal: 12,
     paddingVertical: 5,
-    borderRadius: 20,
     borderWidth: 1,
   },
-  badgeText: {
-    fontSize: 12,
-    fontFamily: "Inter_500Medium",
-  },
   section: {
-    paddingHorizontal: 20,
     paddingTop: 24,
     gap: 10,
-  },
-  sectionTitle: {
-    fontSize: 17,
-    fontFamily: "Inter_700Bold",
-  },
-  description: {
-    fontSize: 15,
-    fontFamily: "Inter_400Regular",
-    lineHeight: 24,
   },
   tagsRow: {
     flexDirection: "row",
@@ -258,25 +303,14 @@ const styles = StyleSheet.create({
   tag: {
     paddingHorizontal: 12,
     paddingVertical: 6,
-    borderRadius: 8,
     borderWidth: 1,
-  },
-  tagText: {
-    fontSize: 13,
-    fontFamily: "Inter_500Medium",
-  },
-  creatorLabel: {
-    fontSize: 13,
-    fontFamily: "Inter_400Regular",
   },
   ctaContainer: {
     paddingHorizontal: 20,
     paddingTop: 12,
     borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: "#2A2A2A",
   },
   startChatBtn: {
-    borderRadius: 16,
     overflow: "hidden",
   },
   startChatGradient: {
@@ -285,10 +319,5 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     gap: 10,
     paddingVertical: 16,
-  },
-  startChatText: {
-    color: "#FFFFFF",
-    fontSize: 17,
-    fontFamily: "Inter_600SemiBold",
   },
 });

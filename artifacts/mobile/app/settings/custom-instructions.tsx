@@ -12,11 +12,12 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import Colors from "@/constants/colors";
+import { Surface } from "@/src/components/Surface";
+import { useTheme } from "@/src/theme/useTheme";
 import { useSettings } from "@/context/SettingsContext";
 
 export default function CustomInstructionsScreen() {
-  const C = Colors.dark;
+  const { colors, spacing: sp, typography: t, radii, screenInsets } = useTheme();
   const insets = useSafeAreaInsets();
   const { settings, updateCustomInstructions } = useSettings();
 
@@ -64,20 +65,27 @@ export default function CustomInstructionsScreen() {
   const topPad = Platform.OS === "web" ? 67 : insets.top;
 
   return (
-    <View style={[styles.container, { backgroundColor: C.background }]}>
+    <View
+      style={[styles.container, { backgroundColor: colors.groupedBackground }]}
+    >
       <View
         style={[
           styles.header,
           {
-            paddingTop: topPad + 8,
-            borderBottomColor: C.border,
+            paddingTop: topPad + sp.sm,
+            borderBottomColor: colors.separator,
           },
         ]}
       >
-        <Pressable onPress={handleBack} style={styles.backBtn}>
-          <Feather name="arrow-left" size={22} color={C.text} />
+        <Pressable
+          onPress={handleBack}
+          style={styles.backBtn}
+          accessibilityLabel="Go back"
+          accessibilityRole="button"
+        >
+          <Feather name="arrow-left" size={22} color={colors.label} />
         </Pressable>
-        <Text style={[styles.headerTitle, { color: C.text }]}>
+        <Text style={[t.headline, { color: colors.label }]}>
           Custom Instructions
         </Text>
         <View style={styles.headerSpacer} />
@@ -85,74 +93,75 @@ export default function CustomInstructionsScreen() {
 
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={[
+          styles.scrollContent,
+          { paddingHorizontal: screenInsets.horizontal },
+        ]}
         keyboardShouldPersistTaps="handled"
       >
         <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: C.text }]}>
+          <Text style={[t.subheadline, { color: colors.label, fontFamily: "Inter_600SemiBold" }]}>
             What would you like the AI to know about you?
           </Text>
-          <Text style={[styles.sectionHint, { color: C.tealMuted }]}>
+          <Text style={[t.footnote, { color: colors.tintMuted }]}>
             This context is shared with every persona you chat with.
           </Text>
-          <View
-            style={[
-              styles.inputWrapper,
-              { backgroundColor: C.card, borderColor: C.border },
-            ]}
+          <Surface
+            variant="grouped"
+            style={[styles.inputWrapper, { borderRadius: radii.lg }]}
           >
             <TextInput
               value={aboutUser}
               onChangeText={handleAboutChange}
               placeholder="e.g. I'm a graduate student studying philosophy. I enjoy deep conversations about ethics and the meaning of life."
-              placeholderTextColor={C.textMuted}
-              style={[styles.textInput, { color: C.text }]}
+              placeholderTextColor={colors.placeholderText}
+              style={[styles.textInput, t.callout, { color: colors.label }]}
               multiline
               textAlignVertical="top"
               maxLength={1500}
+              accessibilityLabel="About you"
             />
-          </View>
-          <Text style={[styles.charCount, { color: C.textMuted }]}>
+          </Surface>
+          <Text style={[t.caption2, { color: colors.tertiaryLabel, textAlign: "right" }]}>
             {aboutUser.length}/1500
           </Text>
         </View>
 
         <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: C.text }]}>
+          <Text style={[t.subheadline, { color: colors.label, fontFamily: "Inter_600SemiBold" }]}>
             How would you like the AI to respond?
           </Text>
-          <Text style={[styles.sectionHint, { color: C.tealMuted }]}>
+          <Text style={[t.footnote, { color: colors.tintMuted }]}>
             Set preferences for tone, format, and detail level.
           </Text>
-          <View
-            style={[
-              styles.inputWrapper,
-              { backgroundColor: C.card, borderColor: C.border },
-            ]}
+          <Surface
+            variant="grouped"
+            style={[styles.inputWrapper, { borderRadius: radii.lg }]}
           >
             <TextInput
               value={responseStyle}
               onChangeText={handleStyleChange}
               placeholder="e.g. Be concise and direct. Use examples when explaining complex topics. Avoid overly formal language."
-              placeholderTextColor={C.textMuted}
-              style={[styles.textInput, { color: C.text }]}
+              placeholderTextColor={colors.placeholderText}
+              style={[styles.textInput, t.callout, { color: colors.label }]}
               multiline
               textAlignVertical="top"
               maxLength={1500}
+              accessibilityLabel="Response style preferences"
             />
-          </View>
-          <Text style={[styles.charCount, { color: C.textMuted }]}>
+          </Surface>
+          <Text style={[t.caption2, { color: colors.tertiaryLabel, textAlign: "right" }]}>
             {responseStyle.length}/1500
           </Text>
         </View>
 
-        <View style={[styles.infoBox, { backgroundColor: C.card }]}>
-          <Feather name="info" size={14} color={C.teal} />
-          <Text style={[styles.infoText, { color: C.textSecondary }]}>
+        <Surface variant="grouped" style={[styles.infoBox, { borderRadius: radii.md }]}>
+          <Feather name="info" size={14} color={colors.tint} />
+          <Text style={[t.footnote, { color: colors.secondaryLabel, flex: 1 }]}>
             Custom instructions are automatically included in every
             conversation. Changes apply to new messages only.
           </Text>
-        </View>
+        </Surface>
 
         <View style={{ height: 60 }} />
       </ScrollView>
@@ -172,55 +181,28 @@ const styles = StyleSheet.create({
     borderBottomWidth: StyleSheet.hairlineWidth,
   },
   backBtn: {
-    width: 40,
-    height: 40,
+    width: 44,
+    height: 44,
     alignItems: "center",
     justifyContent: "center",
-    borderRadius: 20,
-  },
-  headerTitle: {
-    flex: 1,
-    textAlign: "center",
-    fontSize: 17,
-    fontFamily: "Inter_600SemiBold",
+    borderRadius: 22,
   },
   headerSpacer: {
-    width: 40,
+    width: 44,
   },
   scrollContent: {
     paddingBottom: 20,
-    paddingHorizontal: 16,
   },
   section: {
     marginTop: 24,
     gap: 8,
   },
-  sectionTitle: {
-    fontSize: 15,
-    fontFamily: "Inter_600SemiBold",
-    lineHeight: 22,
-  },
-  sectionHint: {
-    fontSize: 13,
-    fontFamily: "Inter_400Regular",
-    lineHeight: 18,
-    marginBottom: 4,
-  },
   inputWrapper: {
-    borderRadius: 14,
-    borderWidth: 1,
     padding: 12,
   },
   textInput: {
-    fontSize: 14,
-    fontFamily: "Inter_400Regular",
-    lineHeight: 20,
     minHeight: 120,
-  },
-  charCount: {
-    fontSize: 11,
-    fontFamily: "Inter_400Regular",
-    textAlign: "right",
+    padding: 0,
   },
   infoBox: {
     flexDirection: "row",
@@ -228,12 +210,5 @@ const styles = StyleSheet.create({
     gap: 10,
     marginTop: 24,
     padding: 14,
-    borderRadius: 12,
-  },
-  infoText: {
-    flex: 1,
-    fontSize: 13,
-    fontFamily: "Inter_400Regular",
-    lineHeight: 18,
   },
 });

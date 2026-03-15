@@ -1,10 +1,10 @@
 import React, { useEffect, useRef } from "react";
 import { Animated, StyleSheet, View } from "react-native";
 
-import Colors from "@/constants/colors";
+import { useTheme } from "@/src/theme/useTheme";
 
 export function TypingIndicator() {
-  const C = Colors.dark;
+  const { colors, radii } = useTheme();
   const dot1 = useRef(new Animated.Value(0)).current;
   const dot2 = useRef(new Animated.Value(0)).current;
   const dot3 = useRef(new Animated.Value(0)).current;
@@ -43,13 +43,26 @@ export function TypingIndicator() {
   }, []);
 
   return (
-    <View style={[styles.container, { backgroundColor: C.card }]}>
+    <View
+      style={[
+        styles.container,
+        {
+          backgroundColor: colors.secondarySystemBackground,
+          borderRadius: radii.xxl - 6,
+        },
+      ]}
+      accessibilityLabel="Typing"
+      accessibilityRole="text"
+    >
       {[dot1, dot2, dot3].map((dot, i) => (
         <Animated.View
           key={i}
           style={[
             styles.dot,
-            { backgroundColor: C.textSecondary, transform: [{ translateY: dot }] },
+            {
+              backgroundColor: colors.secondaryLabel,
+              transform: [{ translateY: dot }],
+            },
           ]}
         />
       ))}
@@ -64,7 +77,6 @@ const styles = StyleSheet.create({
     gap: 5,
     paddingHorizontal: 16,
     paddingVertical: 12,
-    borderRadius: 18,
     borderBottomLeftRadius: 4,
     alignSelf: "flex-start",
     marginHorizontal: 16,

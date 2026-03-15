@@ -2,7 +2,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import React from "react";
 import { Pressable, StyleSheet, View } from "react-native";
 
-import Colors, { spectral } from "@/constants/colors";
+import { useTheme } from "@/src/theme/useTheme";
 
 type Props = {
   value: boolean;
@@ -10,18 +10,21 @@ type Props = {
 };
 
 export function SpectralToggle({ value, onValueChange }: Props) {
-  const C = Colors.dark;
+  const { colors, gradients } = useTheme();
 
   return (
     <Pressable
       onPress={() => onValueChange(!value)}
       style={styles.wrapper}
+      accessibilityRole="switch"
+      accessibilityState={{ checked: value }}
+      accessibilityLabel="Toggle"
     >
       {value ? (
         <LinearGradient
-          colors={[spectral.green, spectral.blue, spectral.violet]}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 0 }}
+          colors={gradients.spectral.colors}
+          start={gradients.spectral.start}
+          end={gradients.spectral.end}
           style={styles.track}
         >
           <View style={[styles.thumbArea, { justifyContent: "flex-end" }]}>
@@ -29,7 +32,12 @@ export function SpectralToggle({ value, onValueChange }: Props) {
           </View>
         </LinearGradient>
       ) : (
-        <View style={[styles.track, { backgroundColor: C.cardAlt }]}>
+        <View
+          style={[
+            styles.track,
+            { backgroundColor: colors.tertiarySystemBackground },
+          ]}
+        >
           <View style={[styles.thumbArea, { justifyContent: "flex-start" }]}>
             <View style={styles.thumb} />
           </View>

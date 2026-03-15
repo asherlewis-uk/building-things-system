@@ -8,7 +8,7 @@ import {
   type ViewStyle,
 } from "react-native";
 
-import { spectral } from "@/constants/colors";
+import { useTheme } from "@/src/theme/useTheme";
 
 type Props = {
   onPress: () => void;
@@ -25,24 +25,29 @@ export function SpectralButton({
   style,
   children,
 }: Props) {
+  const { gradients, radii, typography: t } = useTheme();
+
   return (
     <Pressable
       onPress={onPress}
       disabled={disabled}
       style={({ pressed }) => [
         styles.wrapper,
-        { opacity: pressed ? 0.85 : disabled ? 0.5 : 1 },
+        { borderRadius: radii.full, opacity: pressed ? 0.85 : disabled ? 0.5 : 1 },
         style,
       ]}
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      accessibilityState={{ disabled }}
     >
       <LinearGradient
-        colors={[spectral.green, spectral.blue, spectral.violet]}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 0 }}
-        style={styles.gradient}
+        colors={gradients.spectral.colors}
+        start={gradients.spectral.start}
+        end={gradients.spectral.end}
+        style={[styles.gradient, { borderRadius: radii.full }]}
       >
         {children || (
-          <Text style={styles.label}>{label}</Text>
+          <Text style={[t.subheadline, styles.label]}>{label}</Text>
         )}
       </LinearGradient>
     </Pressable>
@@ -51,7 +56,6 @@ export function SpectralButton({
 
 const styles = StyleSheet.create({
   wrapper: {
-    borderRadius: 24,
     overflow: "hidden",
   },
   gradient: {
@@ -59,11 +63,9 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     alignItems: "center",
     justifyContent: "center",
-    borderRadius: 24,
   },
   label: {
     color: "#FFFFFF",
-    fontSize: 15,
     fontFamily: "Inter_600SemiBold",
   },
 });

@@ -13,25 +13,25 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { CharacterAvatar } from "@/components/CharacterAvatar";
-import Colors from "@/constants/colors";
 import { useChats } from "@/context/ChatsContext";
+import { useTheme } from "@/src/theme/useTheme";
 import { getCharacterById } from "@/data/characters";
 
 export default function ArchivedChatsScreen() {
-  const C = Colors.dark;
+  const { colors, spacing: sp, typography: t, hitTarget } = useTheme();
   const insets = useSafeAreaInsets();
-  const { archivedConversations, restoreConversation, deleteArchivedConversation } =
-    useChats();
+  const {
+    archivedConversations,
+    restoreConversation,
+    deleteArchivedConversation,
+  } = useChats();
 
   const topPad = Platform.OS === "web" ? 67 : insets.top;
 
   const handleRestore = (id: string, name: string) => {
     Alert.alert("Restore Chat", `Restore your conversation with ${name}?`, [
       { text: "Cancel", style: "cancel" },
-      {
-        text: "Restore",
-        onPress: () => restoreConversation(id),
-      },
+      { text: "Restore", onPress: () => restoreConversation(id) },
     ]);
   };
 
@@ -51,20 +51,25 @@ export default function ArchivedChatsScreen() {
   };
 
   return (
-    <View style={[styles.container, { backgroundColor: C.background }]}>
+    <View style={[styles.container, { backgroundColor: colors.systemBackground }]}>
       <View
         style={[
           styles.header,
           {
-            paddingTop: topPad + 8,
-            borderBottomColor: C.border,
+            paddingTop: topPad + sp.sm,
+            borderBottomColor: colors.separator,
           },
         ]}
       >
-        <Pressable onPress={() => router.back()} style={styles.backBtn}>
-          <Feather name="arrow-left" size={22} color={C.text} />
+        <Pressable
+          onPress={() => router.back()}
+          style={styles.backBtn}
+          accessibilityLabel="Go back"
+          accessibilityRole="button"
+        >
+          <Feather name="arrow-left" size={22} color={colors.label} />
         </Pressable>
-        <Text style={[styles.headerTitle, { color: C.text }]}>
+        <Text style={[t.headline, { color: colors.label }]}>
           Archived Chats
         </Text>
         <View style={styles.headerSpacer} />
@@ -76,13 +81,23 @@ export default function ArchivedChatsScreen() {
       >
         {archivedConversations.length === 0 ? (
           <View style={styles.emptyContainer}>
-            <View style={[styles.emptyIcon, { backgroundColor: C.card }]}>
-              <Feather name="archive" size={32} color={C.tealMuted} />
+            <View
+              style={[
+                styles.emptyIcon,
+                { backgroundColor: colors.secondarySystemBackground },
+              ]}
+            >
+              <Feather name="archive" size={32} color={colors.tintMuted} />
             </View>
-            <Text style={[styles.emptyTitle, { color: C.text }]}>
+            <Text style={[t.title3, { color: colors.label }]}>
               No archived chats
             </Text>
-            <Text style={[styles.emptyText, { color: C.textSecondary }]}>
+            <Text
+              style={[
+                t.subheadline,
+                { color: colors.secondaryLabel, textAlign: "center" },
+              ]}
+            >
               Swipe left on a chat to archive it
             </Text>
           </View>
@@ -92,31 +107,48 @@ export default function ArchivedChatsScreen() {
             return (
               <View
                 key={conv.id}
-                style={[styles.chatItem, { borderBottomColor: C.border }]}
+                style={[
+                  styles.chatItem,
+                  { borderBottomColor: colors.separator },
+                ]}
               >
                 <View style={styles.chatInfo}>
                   {char ? (
                     <CharacterAvatar
                       colors={char.avatarColors}
                       emoji={char.avatarEmoji}
-                      size={44}
+                      size={hitTarget.minimum}
                     />
                   ) : (
                     <View
-                      style={[styles.fallbackAvatar, { backgroundColor: C.card }]}
+                      style={[
+                        styles.fallbackAvatar,
+                        {
+                          backgroundColor: colors.secondarySystemBackground,
+                          width: hitTarget.minimum,
+                          height: hitTarget.minimum,
+                        },
+                      ]}
                     >
-                      <Feather name="user" size={20} color={C.textMuted} />
+                      <Feather
+                        name="user"
+                        size={20}
+                        color={colors.tertiaryLabel}
+                      />
                     </View>
                   )}
                   <View style={styles.chatText}>
                     <Text
-                      style={[styles.chatName, { color: C.text }]}
+                      style={[
+                        t.subheadline,
+                        { color: colors.label, fontFamily: "Inter_600SemiBold" },
+                      ]}
                       numberOfLines={1}
                     >
                       {conv.characterName}
                     </Text>
                     <Text
-                      style={[styles.chatPreview, { color: C.textSecondary }]}
+                      style={[t.footnote, { color: colors.secondaryLabel }]}
                       numberOfLines={1}
                     >
                       {conv.messages.length} messages
@@ -128,17 +160,39 @@ export default function ArchivedChatsScreen() {
                     onPress={() =>
                       handleRestore(conv.id, conv.characterName)
                     }
-                    style={[styles.actionBtn, { backgroundColor: C.card }]}
+                    style={[
+                      styles.actionBtn,
+                      {
+                        backgroundColor: colors.secondarySystemBackground,
+                        width: hitTarget.minimum,
+                        height: hitTarget.minimum,
+                      },
+                    ]}
+                    accessibilityLabel={`Restore chat with ${conv.characterName}`}
+                    accessibilityRole="button"
                   >
-                    <Feather name="rotate-ccw" size={16} color={C.teal} />
+                    <Feather name="rotate-ccw" size={16} color={colors.tint} />
                   </Pressable>
                   <Pressable
                     onPress={() =>
                       handleDelete(conv.id, conv.characterName)
                     }
-                    style={[styles.actionBtn, { backgroundColor: C.card }]}
+                    style={[
+                      styles.actionBtn,
+                      {
+                        backgroundColor: colors.secondarySystemBackground,
+                        width: hitTarget.minimum,
+                        height: hitTarget.minimum,
+                      },
+                    ]}
+                    accessibilityLabel={`Delete chat with ${conv.characterName}`}
+                    accessibilityRole="button"
                   >
-                    <Feather name="trash-2" size={16} color={C.error} />
+                    <Feather
+                      name="trash-2"
+                      size={16}
+                      color={colors.destructive}
+                    />
                   </Pressable>
                 </View>
               </View>
@@ -163,20 +217,14 @@ const styles = StyleSheet.create({
     borderBottomWidth: StyleSheet.hairlineWidth,
   },
   backBtn: {
-    width: 40,
-    height: 40,
+    width: 44,
+    height: 44,
     alignItems: "center",
     justifyContent: "center",
-    borderRadius: 20,
-  },
-  headerTitle: {
-    flex: 1,
-    textAlign: "center",
-    fontSize: 17,
-    fontFamily: "Inter_600SemiBold",
+    borderRadius: 22,
   },
   headerSpacer: {
-    width: 40,
+    width: 44,
   },
   scrollContent: {
     paddingBottom: 20,
@@ -195,16 +243,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     marginBottom: 8,
   },
-  emptyTitle: {
-    fontSize: 20,
-    fontFamily: "Inter_600SemiBold",
-  },
-  emptyText: {
-    fontSize: 14,
-    fontFamily: "Inter_400Regular",
-    textAlign: "center",
-    lineHeight: 20,
-  },
   chatItem: {
     flexDirection: "row",
     alignItems: "center",
@@ -219,8 +257,6 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   fallbackAvatar: {
-    width: 44,
-    height: 44,
     borderRadius: 22,
     alignItems: "center",
     justifyContent: "center",
@@ -229,22 +265,12 @@ const styles = StyleSheet.create({
     flex: 1,
     gap: 2,
   },
-  chatName: {
-    fontSize: 15,
-    fontFamily: "Inter_600SemiBold",
-  },
-  chatPreview: {
-    fontSize: 13,
-    fontFamily: "Inter_400Regular",
-  },
   chatActions: {
     flexDirection: "row",
     gap: 8,
   },
   actionBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    borderRadius: 22,
     alignItems: "center",
     justifyContent: "center",
   },

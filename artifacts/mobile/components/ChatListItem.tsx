@@ -4,7 +4,7 @@ import React from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
 import { CharacterAvatar } from "@/components/CharacterAvatar";
-import Colors from "@/constants/colors";
+import { useTheme } from "@/src/theme/useTheme";
 import type { Character } from "@/data/characters";
 import type { Conversation } from "@/context/ChatsContext";
 
@@ -24,11 +24,14 @@ function formatTime(timestamp: number): string {
   if (minutes < 60) return `${minutes}m`;
   if (hours < 24) return `${hours}h`;
   if (days < 7) return `${days}d`;
-  return new Date(timestamp).toLocaleDateString("en-US", { month: "short", day: "numeric" });
+  return new Date(timestamp).toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+  });
 }
 
 export function ChatListItem({ conversation, character }: Props) {
-  const C = Colors.dark;
+  const { colors, typography: t, spacing: sp, hitTarget } = useTheme();
 
   const handlePress = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -43,8 +46,10 @@ export function ChatListItem({ conversation, character }: Props) {
       onPress={handlePress}
       style={({ pressed }) => [
         styles.container,
-        { opacity: pressed ? 0.8 : 1 },
+        { minHeight: hitTarget.minimum, opacity: pressed ? 0.8 : 1 },
       ]}
+      accessibilityLabel={`Chat with ${character.name}. Last message: ${conversation.lastMessage || "No messages yet"}. ${formatTime(conversation.lastMessageTime)}`}
+      accessibilityRole="button"
     >
       <CharacterAvatar
         colors={character.avatarColors}
@@ -53,14 +58,23 @@ export function ChatListItem({ conversation, character }: Props) {
       />
       <View style={styles.content}>
         <View style={styles.topRow}>
-          <Text style={[styles.name, { color: C.text }]} numberOfLines={1}>
+          <Text
+            style={[
+              t.subheadline,
+              { color: colors.label, fontFamily: "Inter_600SemiBold", flex: 1 },
+            ]}
+            numberOfLines={1}
+          >
             {character.name}
           </Text>
-          <Text style={[styles.time, { color: C.textMuted }]}>
+          <Text style={[t.caption1, { color: colors.tertiaryLabel }]}>
             {formatTime(conversation.lastMessageTime)}
           </Text>
         </View>
-        <Text style={[styles.lastMessage, { color: C.textSecondary }]} numberOfLines={1}>
+        <Text
+          style={[t.footnote, { color: colors.secondaryLabel }]}
+          numberOfLines={1}
+        >
           {conversation.lastMessage || "Say hello!"}
         </Text>
       </View>
@@ -84,19 +98,6 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-  },
-  name: {
-    fontSize: 15,
-    fontFamily: "Inter_600SemiBold",
-    flex: 1,
-    marginRight: 8,
-  },
-  time: {
-    fontSize: 12,
-    fontFamily: "Inter_400Regular",
-  },
-  lastMessage: {
-    fontSize: 13,
-    fontFamily: "Inter_400Regular",
+    gap: 8,
   },
 });

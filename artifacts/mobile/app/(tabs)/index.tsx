@@ -1,6 +1,6 @@
+import { Feather } from "@expo/vector-icons";
 import React, { useState } from "react";
 import {
-  FlatList,
   Platform,
   Pressable,
   ScrollView,
@@ -10,25 +10,27 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { CategoryPill } from "@/components/CategoryPill";
 import { CharacterCard } from "@/components/CharacterCard";
 import { FeaturedBanner } from "@/components/FeaturedBanner";
-import Colors from "@/constants/colors";
-import { CATEGORIES, CHARACTERS, FEATURED_CHARACTERS, getCharactersByCategory } from "@/data/characters";
+import { Chip } from "@/src/components/Chip";
+import { useTheme } from "@/src/theme/useTheme";
+import {
+  CATEGORIES,
+  FEATURED_CHARACTERS,
+  getCharactersByCategory,
+} from "@/data/characters";
 
 export default function DiscoverScreen() {
-  const C = Colors.dark;
+  const { colors, spacing: sp, typography: t, screenInsets } = useTheme();
   const insets = useSafeAreaInsets();
   const [selectedCategory, setSelectedCategory] = useState("All");
 
-  const topPadding = Platform.OS === "web" ? 67 : insets.top;
+  const topPadding = Platform.OS === "web" ? 67 : 0;
   const displayedChars = getCharactersByCategory(selectedCategory);
   const featured = FEATURED_CHARACTERS.slice(0, 3);
 
-  const numColumns = 2;
-
   return (
-    <View style={[styles.container, { backgroundColor: C.background }]}>
+    <View style={[styles.container, { backgroundColor: colors.systemBackground }]}>
       <ScrollView
         contentInsetAdjustmentBehavior="automatic"
         showsVerticalScrollIndicator={false}
@@ -37,37 +39,52 @@ export default function DiscoverScreen() {
           { paddingTop: Platform.OS === "web" ? topPadding : 0 },
         ]}
       >
-        {/* Header */}
-        <View style={styles.header}>
-          <Text style={[styles.title, { color: C.text }]}>Discover</Text>
-          <Text style={[styles.subtitle, { color: C.textSecondary }]}>
+        <View
+          style={[styles.header, { paddingHorizontal: screenInsets.horizontal }]}
+          accessibilityRole="header"
+        >
+          <Text
+            style={[t.largeTitle, { color: colors.label }]}
+            accessibilityRole="header"
+          >
+            Discover
+          </Text>
+          <Text style={[t.subheadline, { color: colors.secondaryLabel }]}>
             Find your perfect companion
           </Text>
         </View>
 
-        {/* Featured carousel */}
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.featuredList}
-          snapToInterval={340}
+          contentContainerStyle={[
+            styles.featuredList,
+            { paddingHorizontal: screenInsets.horizontal },
+          ]}
+          snapToInterval={320 + sp.md}
           decelerationRate="fast"
         >
           {featured.map((char) => (
-            <View key={char.id} style={styles.featuredItem}>
+            <View
+              key={char.id}
+              style={styles.featuredItem}
+              accessibilityLabel={`Featured persona: ${char.name}`}
+            >
               <FeaturedBanner character={char} />
             </View>
           ))}
         </ScrollView>
 
-        {/* Category pills */}
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.categoryList}
+          contentContainerStyle={[
+            styles.chipList,
+            { paddingHorizontal: screenInsets.horizontal },
+          ]}
         >
           {CATEGORIES.map((cat) => (
-            <CategoryPill
+            <Chip
               key={cat}
               label={cat}
               selected={selectedCategory === cat}
@@ -76,19 +93,22 @@ export default function DiscoverScreen() {
           ))}
         </ScrollView>
 
-        {/* Section heading */}
-        <View style={styles.sectionHeader}>
-          <Text style={[styles.sectionTitle, { color: C.text }]}>
+        <View
+          style={[
+            styles.sectionHeader,
+            { paddingHorizontal: screenInsets.horizontal },
+          ]}
+        >
+          <Text style={[t.title3, { color: colors.label }]}>
             {selectedCategory === "All" ? "All Personas" : selectedCategory}
           </Text>
-          <Text style={[styles.sectionCount, { color: C.textMuted }]}>
+          <Text style={[t.footnote, { color: colors.tertiaryLabel }]}>
             {displayedChars.length}
           </Text>
         </View>
 
-        {/* Character grid */}
-        <View style={styles.grid}>
-          {displayedChars.map((char, i) => (
+        <View style={[styles.grid, { paddingHorizontal: sp.md }]}>
+          {displayedChars.map((char) => (
             <CharacterCard
               key={char.id}
               character={char}
@@ -111,52 +131,31 @@ const styles = StyleSheet.create({
     paddingBottom: 20,
   },
   header: {
-    paddingHorizontal: 20,
     paddingTop: 20,
     paddingBottom: 16,
     gap: 4,
   },
-  title: {
-    fontSize: 32,
-    fontFamily: "Inter_700Bold",
-  },
-  subtitle: {
-    fontSize: 14,
-    fontFamily: "Inter_400Regular",
-  },
   featuredList: {
-    paddingHorizontal: 16,
     gap: 12,
     paddingBottom: 4,
   },
   featuredItem: {
     width: 320,
   },
-  categoryList: {
-    paddingHorizontal: 16,
+  chipList: {
     paddingVertical: 12,
     gap: 8,
   },
   sectionHeader: {
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: 20,
     paddingTop: 4,
     paddingBottom: 12,
     gap: 8,
   },
-  sectionTitle: {
-    fontSize: 18,
-    fontFamily: "Inter_700Bold",
-  },
-  sectionCount: {
-    fontSize: 14,
-    fontFamily: "Inter_400Regular",
-  },
   grid: {
     flexDirection: "row",
     flexWrap: "wrap",
-    paddingHorizontal: 12,
     gap: 10,
   },
   gridItem: {
