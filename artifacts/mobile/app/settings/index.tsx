@@ -10,12 +10,12 @@ import {
   ScrollView,
   Share,
   StyleSheet,
-  Switch,
   Text,
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { SpectralToggle } from "@/components/SpectralToggle";
 import Colors, { spectral } from "@/constants/colors";
 import { useChats } from "@/context/ChatsContext";
 import { useSettings, type ThemePreference } from "@/context/SettingsContext";
@@ -217,11 +217,9 @@ export default function SettingsScreen() {
             icon="smartphone"
             label="Haptic Feedback"
             rightElement={
-              <Switch
+              <SpectralToggle
                 value={settings.hapticFeedback}
                 onValueChange={updateHapticFeedback}
-                trackColor={{ false: C.cardAlt, true: C.teal }}
-                thumbColor="#fff"
               />
             }
           />

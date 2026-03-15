@@ -22,7 +22,6 @@ import { TypingIndicator } from "@/components/TypingIndicator";
 import Colors, { spectral } from "@/constants/colors";
 import {
   generateConversationId,
-  generateMessageId,
   useChats,
   type Message,
 } from "@/context/ChatsContext";
@@ -40,7 +39,7 @@ export default function ChatScreen() {
   const C = Colors.dark;
   const insets = useSafeAreaInsets();
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { getConversation, upsertConversation, updateLastMessage } = useChats();
+  const { getConversation, upsertConversation } = useChats();
   const { settings } = useSettings();
 
   const character = getCharacterById(id);
@@ -50,7 +49,6 @@ export default function ChatScreen() {
   const [showTyping, setShowTyping] = useState(false);
   const inputRef = useRef<TextInput>(null);
   const initializedRef = useRef(false);
-  const convIdRef = useRef<string>("");
 
   useEffect(() => {
     if (!character || initializedRef.current) return;
@@ -59,7 +57,6 @@ export default function ChatScreen() {
     let conv = getConversation(character.id);
     if (!conv) {
       const convId = generateConversationId(character.id);
-      convIdRef.current = convId;
       const greeting: Message = {
         id: genId(),
         role: "assistant",
