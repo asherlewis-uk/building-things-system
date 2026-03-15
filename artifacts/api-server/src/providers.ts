@@ -79,23 +79,34 @@ export function getProviderConfig(id: ProviderID): ProviderConfig | undefined {
   return PROVIDER_CONFIGS.find((p) => p.id === id);
 }
 
+const LOCALHOST_HOSTS = new Set([
+  "localhost",
+  "127.0.0.1",
+  "0.0.0.0",
+  "::1",
+]);
+
+function isLocalhostOnly(hostname: string): boolean {
+  return LOCALHOST_HOSTS.has(hostname);
+}
+
+function isPrivateNetwork(hostname: string): boolean {
+  if (LOCALHOST_HOSTS.has(hostname)) return true;
+  if (hostname === "host.docker.internal") return true;
+  if (hostname === "host.containers.internal") return true;
+  if (hostname.startsWith("192.168.")) return true;
+  if (hostname.startsWith("10.")) return true;
+  if (/^172\.(1[6-9]|2\d|3[01])\./.test(hostname)) return true;
+  if (hostname.endsWith(".local")) return true;
+  return false;
+}
+
 export function isAllowedEndpoint(url: string): boolean {
   try {
     const parsed = new URL(url);
     const hostname = parsed.hostname.toLowerCase();
-    const allowedHosts = [
-      "localhost",
-      "127.0.0.1",
-      "0.0.0.0",
-      "host.docker.internal",
-      "host.containers.internal",
-    ];
-    if (allowedHosts.includes(hostname)) return true;
-    if (hostname.startsWith("192.168.")) return true;
-    if (hostname.startsWith("10.")) return true;
-    if (/^172\.(1[6-9]|2\d|3[01])\./.test(hostname)) return true;
-    if (hostname.endsWith(".local")) return true;
-    return false;
+    const allowPrivateNet = process.env.ALLOW_PRIVATE_NETWORK_ENDPOINTS === "true";
+    return allowPrivateNet ? isPrivateNetwork(hostname) : isLocalhostOnly(hostname);
   } catch {
     return false;
   }
