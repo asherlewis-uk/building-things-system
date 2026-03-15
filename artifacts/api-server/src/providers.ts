@@ -126,12 +126,12 @@ export type ProviderStatus = "ready" | "needs_config" | "needs_endpoint";
 export function getProviderStatus(config: ProviderConfig): ProviderStatus {
   const id = config.id as string;
 
-  if (id === "ollama" || id === "custom") {
+  if (id === "custom") {
     return "needs_endpoint";
   }
 
   const baseUrl = resolveBaseUrl(config);
-  if (!baseUrl) return "needs_config";
+  if (!baseUrl) return id === "ollama" ? "needs_endpoint" : "needs_config";
 
   if (config.apiKeyEnv) {
     const key = resolveApiKey(config);

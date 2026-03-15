@@ -39,7 +39,7 @@ const FALLBACK_PROVIDERS: ProviderInfo[] = [
   { id: "openai", name: "OpenAI", models: ["gpt-5.2", "gpt-4.1", "gpt-4.1-mini", "gpt-4.1-nano", "gpt-4o", "gpt-4o-mini", "o3-mini"], defaultModel: "gpt-5.2", status: "ready", supportsModelDiscovery: false, requiresEndpoint: false },
   { id: "anthropic", name: "Anthropic", models: ["claude-sonnet-4-20250514", "claude-opus-4-20250514", "claude-haiku-3-5-20241022"], defaultModel: "claude-sonnet-4-20250514", status: "needs_config", supportsModelDiscovery: false, requiresEndpoint: false },
   { id: "gemini", name: "Google Gemini", models: ["gemini-2.5-pro", "gemini-2.5-flash", "gemini-2.0-flash"], defaultModel: "gemini-2.5-flash", status: "needs_config", supportsModelDiscovery: false, requiresEndpoint: false },
-  { id: "ollama", name: "Ollama", models: ["llama3.1", "llama3", "mistral", "codellama", "phi3", "gemma2"], defaultModel: "llama3.1", status: "needs_endpoint", supportsModelDiscovery: true, requiresEndpoint: true },
+  { id: "ollama", name: "Ollama", models: ["llama3.1", "llama3", "mistral", "codellama", "phi3", "gemma2"], defaultModel: "llama3.1", status: "ready", supportsModelDiscovery: true, requiresEndpoint: true },
   { id: "custom", name: "Custom (OpenAI-compatible)", models: [], defaultModel: "", status: "needs_endpoint", supportsModelDiscovery: false, requiresEndpoint: true },
 ];
 
@@ -274,7 +274,7 @@ export default function AIProviderScreen() {
                   ]}
                   placeholder={
                     settings.ai.provider === "ollama"
-                      ? "http://localhost:11434"
+                      ? "http://localhost:11434/v1"
                       : "http://localhost:8080/v1"
                   }
                   placeholderTextColor={colors.tertiaryLabel}
