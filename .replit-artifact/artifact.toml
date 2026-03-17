@@ -1,0 +1,27 @@
+kind = "mobile"
+previewPath = "/"
+title = "AI Companions"
+version = "1.0.0"
+id = "mobile-root"
+router = "expo-domain"
+
+[[integratedSkills]]
+name = "expo"
+version = "1.0.0"
+
+[[services]]
+ensurePreviewReachable = "/status"
+localPort = 18115
+name = "expo"
+paths = ["/"]
+
+[services.development]
+run = "pnpm exec expo start --localhost --port 18115"
+
+[services.env]
+PORT = "18115"
+BASE_PATH = "/"
+
+[services.production]
+build = ["pnpm", "run", "build"]
+run = ["pnpm", "run", "serve"]
