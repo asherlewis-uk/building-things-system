@@ -122,6 +122,8 @@ export function SidebarPanel() {
     currentWorkspaceId,
     files,
     mcpServers,
+    remoteIdentity,
+    resolvedConfig,
     refreshFiles,
     refreshSessions,
     refreshWorkspaces,
@@ -716,7 +718,11 @@ export function SidebarPanel() {
             Local-first mode
           </p>
           <p className="text-[9px] text-zinc-500 font-mono">
-            No external model calls
+            {remoteIdentity?.status === "connected"
+              ? `Appwrite identity: ${remoteIdentity.user?.label ?? "connected"}`
+              : resolvedConfig?.env.appwrite.auth.status === "ready"
+                ? "Optional Appwrite identity available"
+                : "SQLite remains authoritative"}
           </p>
         </div>
         <Button

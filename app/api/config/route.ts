@@ -1,9 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { parseRequestJson, toErrorResponse } from "@/lib/api";
 import {
+  applyConfigPatch,
   getResolvedConfig,
-  updateAppSettings,
-  updateWorkspaceSettings,
 } from "@/lib/services/config";
 import { resolveWorkspaceId } from "@/lib/services/workspaces";
 
@@ -34,16 +33,7 @@ export async function PUT(req: Request) {
     }
 
     const workspaceId = await resolveWorkspaceId(parsedBody.data.workspace_id);
-
-    if (parsedBody.data.app && typeof parsedBody.data.app === "object") {
-      await updateAppSettings(parsedBody.data.app);
-    }
-
-    if (parsedBody.data.workspace && typeof parsedBody.data.workspace === "object") {
-      await updateWorkspaceSettings(workspaceId, parsedBody.data.workspace);
-    }
-
-    const config = await getResolvedConfig(workspaceId);
+    const config = await applyConfigPatch(workspaceId, parsedBody.data);
     return NextResponse.json(config);
   } catch (error) {
     return toErrorResponse(error, "Failed to update config");

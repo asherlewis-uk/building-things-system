@@ -8,6 +8,28 @@ Building.Things is a local-first IDE shell built with Next.js App Router. It is 
 
 The app is intentionally not wired to Anthropic, Gemini, or any other hosted model provider. The UI, routing, state management, database persistence, terminal simulation, preview generation, and write-mode flows are all real. The assistant layer is local and stubbed so the shell can be exercised without external API keys or outbound AI calls.
 
+## Appwrite Integration
+
+Appwrite is optional in this repository.
+
+- **What Appwrite is used for today**
+  - A server-side reachability probe so the settings UI can report whether an Appwrite endpoint is actually reachable.
+  - An optional managed anonymous-session bootstrap used only for remote identity state.
+
+- **What still stays local**
+  - Workspaces, sessions, messages, files, artifacts, deployments, settings, MCP records, terminal state, and preview inputs all remain in local SQLite.
+  - The assistant loop remains local and stubbed.
+
+- **Required environment variables**
+  - `APPWRITE_ENDPOINT` and `APPWRITE_PROJECT_ID` are required for the reachability probe.
+  - `APPWRITE_API_KEY` is only required when `APPWRITE_AUTH_MODE="anonymous"`.
+  - `APPWRITE_AUTH_MODE` supports `off` and `anonymous`.
+
+- **Current limitations**
+  - A successful probe only confirms endpoint reachability. It does not verify future collection access, permissions, or data-model readiness.
+  - The current Appwrite pass does not sync or migrate local records into Appwrite.
+  - Anonymous identity support still depends on Appwrite project settings allowing anonymous sessions.
+
 ## AI Agent Primer
 
 If you are an AI agent or a new maintainer landing in this repository, the most important framing is this:

@@ -5,6 +5,7 @@ import { getClientErrorMessage, readJsonResponse } from "@/lib/client-api";
 import type {
   FileSummary,
   McpServer,
+  RemoteIdentityState,
   ResolvedConfig,
   Session,
   SessionMode,
@@ -26,6 +27,8 @@ interface WorkspaceContextType {
   setMode: (mode: SessionMode) => Promise<void>;
   files: FileSummary[];
   mcpServers: McpServer[];
+  remoteIdentity: RemoteIdentityState | null;
+  remoteIdentityBusy: "refresh" | "connect" | "disconnect" | null;
   resolvedConfig: ResolvedConfig | null;
   workspaceError: string | null;
   sessions: Session[];
@@ -34,6 +37,9 @@ interface WorkspaceContextType {
   refreshWorkspaces: () => Promise<void>;
   refreshMcpServers: () => Promise<void>;
   refreshConfig: () => Promise<void>;
+  refreshRemoteIdentity: () => Promise<RemoteIdentityState | null>;
+  connectRemoteIdentity: () => Promise<RemoteIdentityState | null>;
+  disconnectRemoteIdentity: () => Promise<RemoteIdentityState | null>;
   isSettingsOpen: boolean;
   setSettingsOpen: (open: boolean) => void;
 }
@@ -55,6 +61,11 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
   const [files, setFiles] = React.useState<FileSummary[]>([]);
   const [sessions, setSessions] = React.useState<Session[]>([]);
   const [mcpServers, setMcpServers] = React.useState<McpServer[]>([]);
+  const [remoteIdentity, setRemoteIdentity] =
+    React.useState<RemoteIdentityState | null>(null);
+  const [remoteIdentityBusy, setRemoteIdentityBusy] = React.useState<
+    "refresh" | "connect" | "disconnect" | null
+  >(null);
   const [resolvedConfig, setResolvedConfig] =
     React.useState<ResolvedConfig | null>(null);
   const [workspaceError, setWorkspaceError] = React.useState<string | null>(
@@ -227,6 +238,72 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
     }
   }, [currentWorkspaceId]);
 
+  const refreshRemoteIdentity = React.useCallback(async () => {
+    setRemoteIdentityBusy("refresh");
+
+    try {
+      const nextState = await readJsonResponse<RemoteIdentityState>(
+        await fetch("/api/integrations/appwrite/session", {
+          cache: "no-store",
+        }),
+      );
+      setRemoteIdentity(nextState);
+      setWorkspaceError(null);
+      return nextState;
+    } catch (error) {
+      setWorkspaceError(
+        getClientErrorMessage(error, "Failed to load Appwrite identity."),
+      );
+      return null;
+    } finally {
+      setRemoteIdentityBusy(null);
+    }
+  }, []);
+
+  const connectRemoteIdentity = React.useCallback(async () => {
+    setRemoteIdentityBusy("connect");
+
+    try {
+      const nextState = await readJsonResponse<RemoteIdentityState>(
+        await fetch("/api/integrations/appwrite/session", {
+          method: "POST",
+        }),
+      );
+      setRemoteIdentity(nextState);
+      setWorkspaceError(null);
+      return nextState;
+    } catch (error) {
+      setWorkspaceError(
+        getClientErrorMessage(error, "Failed to connect Appwrite identity."),
+      );
+      return null;
+    } finally {
+      setRemoteIdentityBusy(null);
+    }
+  }, []);
+
+  const disconnectRemoteIdentity = React.useCallback(async () => {
+    setRemoteIdentityBusy("disconnect");
+
+    try {
+      const nextState = await readJsonResponse<RemoteIdentityState>(
+        await fetch("/api/integrations/appwrite/session", {
+          method: "DELETE",
+        }),
+      );
+      setRemoteIdentity(nextState);
+      setWorkspaceError(null);
+      return nextState;
+    } catch (error) {
+      setWorkspaceError(
+        getClientErrorMessage(error, "Failed to disconnect Appwrite identity."),
+      );
+      return null;
+    } finally {
+      setRemoteIdentityBusy(null);
+    }
+  }, []);
+
   const refreshWorkspaceScope = React.useCallback(async () => {
     await Promise.all([
       refreshConfig(),
@@ -258,6 +335,16 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
       setModeState(resolvedConfig.effective.default_mode);
     }
   }, [currentSession?.mode, resolvedConfig?.effective.default_mode]);
+
+  React.useEffect(() => {
+    if (!resolvedConfig) {
+      setRemoteIdentity(null);
+      setRemoteIdentityBusy(null);
+      return;
+    }
+
+    void refreshRemoteIdentity();
+  }, [refreshRemoteIdentity, resolvedConfig]);
 
   const setCurrentWorkspaceId = React.useCallback(async (id: string) => {
     try {
@@ -334,6 +421,8 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
         setMode,
         files,
         mcpServers,
+        remoteIdentity,
+        remoteIdentityBusy,
         resolvedConfig,
         workspaceError,
         sessions,
@@ -342,6 +431,9 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
         refreshWorkspaces,
         refreshMcpServers,
         refreshConfig,
+        refreshRemoteIdentity,
+        connectRemoteIdentity,
+        disconnectRemoteIdentity,
         isSettingsOpen,
         setSettingsOpen,
       }}

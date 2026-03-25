@@ -16,7 +16,12 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { getClientErrorMessage, readJsonResponse } from "@/lib/client-api";
 import { useWorkspace } from "@/components/workspace/workspace-provider";
-import type { McpServer, ResolvedConfig } from "@/lib/types";
+import type {
+  AppwriteIntegrationStatus,
+  McpServer,
+  RemoteIdentityState,
+  ResolvedConfig,
+} from "@/lib/types";
 
 type SettingsFormState = {
   app: {
@@ -107,6 +112,220 @@ function buildMcpForm(server?: McpServer | null): McpFormState {
   };
 }
 
+function getAppwriteFooterCopy(
+  status: AppwriteIntegrationStatus["status"] | undefined,
+  identity: RemoteIdentityState | null,
+) {
+  if (identity?.status === "connected" && identity.user) {
+    return `${identity.user.label} has an Appwrite guest identity. Workspaces, sessions, files, and messages still stay in SQLite.`;
+  }
+
+  switch (status) {
+    case "incomplete":
+      return "Config is partial or invalid. The shell stays local-first.";
+    case "configured":
+      return "Core env vars are set. Reachability has not been checked yet.";
+    case "ready":
+      return "Appwrite responded, but local SQLite remains authoritative.";
+    case "error":
+      return "The latest Appwrite probe failed. Local mode stays active.";
+    case "disabled":
+    default:
+      return "Optional and currently off.";
+  }
+}
+
+function getAppwriteSummary(
+  status: AppwriteIntegrationStatus | null,
+  isChecking: boolean,
+) {
+  if (isChecking) {
+    return "Checking the Appwrite endpoint from the server.";
+  }
+
+  switch (status?.status) {
+    case "incomplete":
+      return "Some Appwrite values are missing or invalid. Requested Appwrite behavior stays unavailable until those warnings are fixed.";
+    case "configured":
+      return "Core Appwrite env vars are valid. A live probe will mark the integration ready once the endpoint responds.";
+    case "ready":
+      return "Appwrite responded to a server-side health probe. SQLite-backed local persistence remains the source of truth.";
+    case "error":
+      return "Appwrite can be probed, but the latest server-side reachability check failed.";
+    case "disabled":
+    default:
+      return "No Appwrite env vars are set. The integration stays off and the local-first SQLite flow remains active.";
+  }
+}
+
+function getAppwriteAuthSummary(status: AppwriteIntegrationStatus | null) {
+  if (!status) {
+    return "Disabled";
+  }
+
+  if (!status.auth.enabled) {
+    return "Disabled";
+  }
+
+  if (status.auth.status === "incomplete") {
+    return status.auth.mode === "anonymous"
+      ? "Anonymous (incomplete)"
+      : "Invalid";
+  }
+
+  return status.auth.mode === "anonymous" ? "Anonymous" : "Disabled";
+}
+
+function getAppwriteAuthTone(
+  status: AppwriteIntegrationStatus | null,
+): "default" | "success" | "warning" | "danger" {
+  if (!status) {
+    return "default";
+  }
+
+  if (status.auth.status === "ready") {
+    return "success";
+  }
+
+  if (status.auth.status === "incomplete") {
+    return "warning";
+  }
+
+  if (status.auth.status === "error") {
+    return "danger";
+  }
+
+  return "default";
+}
+
+function getAppwriteConnectionLabel(
+  status: AppwriteIntegrationStatus | null,
+  isChecking: boolean,
+) {
+  if (isChecking) {
+    return "Checking...";
+  }
+
+  if (!status) {
+    return "Not checked";
+  }
+
+  if (status.connection_status === "reachable") {
+    return status.latency_ms != null
+      ? `Reachable (${status.latency_ms}ms)`
+      : "Reachable";
+  }
+
+  if (status.connection_status === "unreachable") {
+    return "Unreachable";
+  }
+
+  return "Not checked";
+}
+
+function getAppwriteStatusTone(
+  status: AppwriteIntegrationStatus["status"] | undefined,
+): "default" | "success" | "warning" | "danger" {
+  switch (status) {
+    case "ready":
+      return "success";
+    case "incomplete":
+    case "configured":
+      return "warning";
+    case "error":
+      return "danger";
+    case "disabled":
+    default:
+      return "default";
+  }
+}
+
+function getAppwriteConnectionTone(
+  status: AppwriteIntegrationStatus | null,
+  isChecking: boolean,
+): "default" | "success" | "warning" | "danger" {
+  if (isChecking) {
+    return "warning";
+  }
+
+  if (status?.connection_status === "reachable") {
+    return "success";
+  }
+
+  if (status?.connection_status === "unreachable") {
+    return "danger";
+  }
+
+  return "default";
+}
+
+function getRemoteIdentitySummary(identity: RemoteIdentityState | null) {
+  if (identity?.message) {
+    return identity.message;
+  }
+
+  switch (identity?.status) {
+    case "connected":
+      return identity.user
+        ? `Browser session is connected as ${identity.user.label}. This only adds remote identity; workspace data stays local.`
+        : "Browser session is connected to Appwrite. Workspace data stays local.";
+    case "ready":
+      return "Appwrite auth is available, but no browser session is active yet.";
+    case "incomplete":
+      return "Appwrite auth was requested, but the required identity settings are still incomplete.";
+    case "error":
+      return "The Appwrite identity layer is enabled, but the latest browser auth check failed.";
+    case "disabled":
+    case "local":
+    default:
+      return "The shell is currently operating in local-only identity mode.";
+  }
+}
+
+function getRemoteIdentityTone(
+  identity: RemoteIdentityState | null,
+): "default" | "success" | "warning" | "danger" {
+  switch (identity?.status) {
+    case "connected":
+      return "success";
+    case "ready":
+    case "incomplete":
+      return "warning";
+    case "error":
+      return "danger";
+    case "disabled":
+    case "local":
+    default:
+      return "default";
+  }
+}
+
+function getRemoteIdentityLabel(identity: RemoteIdentityState | null) {
+  switch (identity?.status) {
+    case "connected":
+      return identity.user ? `Connected (${identity.user.label})` : "Connected";
+    case "ready":
+      return "Ready";
+    case "incomplete":
+      return "Incomplete";
+    case "error":
+      return "Error";
+    case "disabled":
+      return "Disabled";
+    case "local":
+    default:
+      return "Local only";
+  }
+}
+
+function getRemoteIdentityModeLabel(identity: RemoteIdentityState | null) {
+  if (!identity || identity.mode === "local") {
+    return "local";
+  }
+
+  return "appwrite";
+}
+
 export function SettingsModal() {
   const {
     currentWorkspace,
@@ -114,7 +333,12 @@ export function SettingsModal() {
     isSettingsOpen,
     setSettingsOpen,
     mcpServers,
+    remoteIdentity,
+    remoteIdentityBusy,
+    connectRemoteIdentity,
+    disconnectRemoteIdentity,
     refreshConfig,
+    refreshRemoteIdentity,
     refreshMcpServers,
     resolvedConfig,
   } = useWorkspace();
@@ -136,9 +360,18 @@ export function SettingsModal() {
   const [isSavingMcp, setIsSavingMcp] = React.useState(false);
   const [testingMcpId, setTestingMcpId] = React.useState<string | null>(null);
   const [deletingMcpId, setDeletingMcpId] = React.useState<string | null>(null);
+  const [liveAppwriteStatus, setLiveAppwriteStatus] =
+    React.useState<AppwriteIntegrationStatus | null>(
+      resolvedConfig?.env.appwrite ?? null,
+    );
+  const [isCheckingAppwrite, setIsCheckingAppwrite] = React.useState(false);
+  const [appwriteCheckError, setAppwriteCheckError] = React.useState<
+    string | null
+  >(null);
 
   React.useEffect(() => {
     setSettingsForm(buildSettingsForm(resolvedConfig));
+    setLiveAppwriteStatus(resolvedConfig?.env.appwrite ?? null);
   }, [resolvedConfig]);
 
   React.useEffect(() => {
@@ -148,8 +381,60 @@ export function SettingsModal() {
       setSuccessMessage(null);
       setEditingMcpId(null);
       setMcpForm(buildMcpForm());
+      setAppwriteCheckError(null);
     }
   }, [isSettingsOpen]);
+
+  React.useEffect(() => {
+    if (!isSettingsOpen || activeSection !== "environment") {
+      return;
+    }
+
+    if (!resolvedConfig?.env.appwrite.can_probe) {
+      setLiveAppwriteStatus(resolvedConfig?.env.appwrite ?? null);
+      setAppwriteCheckError(null);
+      return;
+    }
+
+    let cancelled = false;
+
+    const checkAppwriteStatus = async () => {
+      setIsCheckingAppwrite(true);
+      setAppwriteCheckError(null);
+
+      try {
+        const res = await fetch("/api/integrations/appwrite/status", {
+          cache: "no-store",
+        });
+        const data = await readJsonResponse<AppwriteIntegrationStatus>(res);
+
+        if (!cancelled) {
+          setLiveAppwriteStatus(data);
+        }
+      } catch (error) {
+        if (!cancelled) {
+          setAppwriteCheckError(
+            getClientErrorMessage(error, "Failed to check Appwrite status."),
+          );
+        }
+      } finally {
+        if (!cancelled) {
+          setIsCheckingAppwrite(false);
+        }
+      }
+    };
+
+    void checkAppwriteStatus();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    activeSection,
+    isSettingsOpen,
+    resolvedConfig?.env.appwrite,
+    resolvedConfig?.env.appwrite.can_probe,
+  ]);
 
   const handleClose = React.useCallback(() => {
     setSettingsOpen(false);
@@ -321,7 +606,70 @@ export function SettingsModal() {
     }
   };
 
+  const handleConnectRemoteIdentity = async () => {
+    setErrorMessage(null);
+    setSuccessMessage(null);
+
+    const nextState = await connectRemoteIdentity();
+
+    if (!nextState) {
+      setErrorMessage("Failed to update Appwrite identity state.");
+      return;
+    }
+
+    if (nextState.status === "connected") {
+      setSuccessMessage("Appwrite anonymous session connected.");
+      return;
+    }
+
+    if (nextState.status === "error") {
+      setErrorMessage(nextState.error || "Failed to connect Appwrite session.");
+      return;
+    }
+
+    setErrorMessage(nextState.message);
+  };
+
+  const handleDisconnectRemoteIdentity = async () => {
+    setErrorMessage(null);
+    setSuccessMessage(null);
+
+    const nextState = await disconnectRemoteIdentity();
+
+    if (!nextState) {
+      setErrorMessage("Failed to update Appwrite identity state.");
+      return;
+    }
+
+    if (nextState.status === "error") {
+      setErrorMessage(
+        nextState.error || "Failed to disconnect Appwrite session.",
+      );
+      return;
+    }
+
+    if (nextState.status === "ready") {
+      setSuccessMessage(
+        "Appwrite session disconnected. Local SQLite remains primary.",
+      );
+      return;
+    }
+
+    setErrorMessage(nextState.message);
+  };
+
   const envWarnings = resolvedConfig?.env.warnings ?? [];
+  const appwriteStatus = liveAppwriteStatus ?? resolvedConfig?.env.appwrite;
+  const identityState = remoteIdentity;
+  const combinedEnvWarnings = Array.from(
+    new Set([
+      ...envWarnings,
+      ...(appwriteStatus?.warnings ?? []),
+      ...(appwriteStatus?.auth.warnings ?? []),
+      ...(identityState?.warnings ?? []),
+      ...(appwriteCheckError ? [appwriteCheckError] : []),
+    ]),
+  );
 
   return (
     <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm">
@@ -370,11 +718,21 @@ export function SettingsModal() {
           </div>
           <div className="mt-auto border-t border-zinc-800 px-4 py-3">
             <div className="rounded-xl border border-zinc-800 bg-zinc-900/70 p-3">
-              <p className="text-[11px] font-medium text-zinc-300">
-                Provider Status
-              </p>
-              <p className="mt-1 text-[11px] text-zinc-500">
-                External providers stay disabled in this local build.
+              <div className="flex items-center justify-between gap-2">
+                <p className="text-[11px] font-medium text-zinc-300">
+                  Appwrite
+                </p>
+                <div className="flex items-center gap-2">
+                  {isCheckingAppwrite && (
+                    <LoaderCircle className="h-3 w-3 animate-spin text-zinc-500" />
+                  )}
+                  <IntegrationStatusBadge
+                    status={appwriteStatus?.status ?? "disabled"}
+                  />
+                </div>
+              </div>
+              <p className="mt-2 text-[11px] text-zinc-500">
+                {getAppwriteFooterCopy(appwriteStatus?.status, identityState)}
               </p>
             </div>
           </div>
@@ -885,8 +1243,164 @@ export function SettingsModal() {
                 <div className="space-y-5">
                   <SectionTitle
                     title="Environment status"
-                    description="The app is fully local-first. External model providers remain intentionally disabled."
+                    description="The app stays local-first. Appwrite is optional and only marked ready after a server-side health probe succeeds."
                   />
+                  <div className="rounded-xl border border-zinc-800 bg-zinc-950/60 p-4">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2">
+                          <p className="text-sm font-medium text-zinc-100">
+                            Appwrite integration
+                          </p>
+                          <IntegrationStatusBadge
+                            status={appwriteStatus?.status ?? "disabled"}
+                          />
+                          {isCheckingAppwrite && (
+                            <LoaderCircle className="h-3.5 w-3.5 animate-spin text-zinc-500" />
+                          )}
+                        </div>
+                        <p className="mt-2 text-[11px] text-zinc-500">
+                          {getAppwriteSummary(
+                            appwriteStatus ?? null,
+                            isCheckingAppwrite,
+                          )}
+                        </p>
+                        <p className="mt-2 text-[11px] text-zinc-500">
+                          {getRemoteIdentitySummary(identityState)}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="mt-4 flex flex-wrap gap-2">
+                      <Button
+                        variant="secondary"
+                        className="h-8 bg-zinc-900 text-zinc-100 hover:bg-zinc-800"
+                        onClick={() => void refreshRemoteIdentity()}
+                        disabled={
+                          remoteIdentityBusy != null || isCheckingAppwrite
+                        }
+                      >
+                        {remoteIdentityBusy === "refresh" ? (
+                          <LoaderCircle className="mr-2 h-3.5 w-3.5 animate-spin" />
+                        ) : null}
+                        Refresh Identity
+                      </Button>
+                      {appwriteStatus?.auth.status === "ready" &&
+                        identityState?.status !== "connected" && (
+                          <Button
+                            className="h-8 bg-[#F6FF00] text-black hover:bg-[#F6FF00]/90"
+                            onClick={handleConnectRemoteIdentity}
+                            disabled={
+                              remoteIdentityBusy != null || isCheckingAppwrite
+                            }
+                          >
+                            {remoteIdentityBusy === "connect" ? (
+                              <LoaderCircle className="mr-2 h-3.5 w-3.5 animate-spin" />
+                            ) : (
+                              <PlugZap className="mr-2 h-3.5 w-3.5" />
+                            )}
+                            Connect Anonymous Session
+                          </Button>
+                        )}
+                      {identityState?.status === "connected" && (
+                        <Button
+                          variant="secondary"
+                          className="h-8 bg-zinc-900 text-zinc-100 hover:bg-zinc-800"
+                          onClick={handleDisconnectRemoteIdentity}
+                          disabled={remoteIdentityBusy != null}
+                        >
+                          {remoteIdentityBusy === "disconnect" ? (
+                            <LoaderCircle className="mr-2 h-3.5 w-3.5 animate-spin" />
+                          ) : (
+                            <X className="mr-2 h-3.5 w-3.5" />
+                          )}
+                          Disconnect Session
+                        </Button>
+                      )}
+                    </div>
+                    <div className="mt-4 grid gap-4 md:grid-cols-2">
+                      <EnvironmentCard
+                        title="Appwrite Status"
+                        value={appwriteStatus?.status ?? "disabled"}
+                        tone={getAppwriteStatusTone(appwriteStatus?.status)}
+                      />
+                      <EnvironmentCard
+                        title="Auth Mode"
+                        value={getAppwriteAuthSummary(appwriteStatus ?? null)}
+                        tone={getAppwriteAuthTone(appwriteStatus ?? null)}
+                      />
+                      <EnvironmentCard
+                        title="Connection Probe"
+                        value={getAppwriteConnectionLabel(
+                          appwriteStatus ?? null,
+                          isCheckingAppwrite,
+                        )}
+                        tone={getAppwriteConnectionTone(
+                          appwriteStatus ?? null,
+                          isCheckingAppwrite,
+                        )}
+                      />
+                      <EnvironmentCard
+                        title="Identity Mode"
+                        value={getRemoteIdentityModeLabel(identityState)}
+                        tone={getRemoteIdentityTone(identityState)}
+                      />
+                      <EnvironmentCard
+                        title="Identity Session"
+                        value={getRemoteIdentityLabel(identityState)}
+                        tone={getRemoteIdentityTone(identityState)}
+                      />
+                      <EnvironmentCard
+                        title="Endpoint"
+                        value={appwriteStatus?.endpoint ?? "Not set"}
+                      />
+                      <EnvironmentCard
+                        title="Current Identity"
+                        value={identityState?.user?.label ?? "Not connected"}
+                        tone={
+                          identityState?.status === "connected"
+                            ? "success"
+                            : "default"
+                        }
+                      />
+                    </div>
+                    <div className="mt-4 grid gap-4 md:grid-cols-2">
+                      <EnvironmentCard
+                        title="Project ID"
+                        value={appwriteStatus?.project_id ?? "Not set"}
+                      />
+                      <EnvironmentCard
+                        title="API Key"
+                        value={
+                          appwriteStatus?.has_api_key ? "Configured" : "Missing"
+                        }
+                        tone={
+                          appwriteStatus?.has_api_key
+                            ? "success"
+                            : appwriteStatus?.auth.enabled
+                              ? "warning"
+                              : "default"
+                        }
+                      />
+                    </div>
+                    {appwriteStatus?.error && (
+                      <div className="mt-4 flex items-start gap-2 rounded-lg border border-red-900/60 bg-red-950/30 px-3 py-2 text-[11px] text-red-200">
+                        <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+                        <span>{appwriteStatus.error}</span>
+                      </div>
+                    )}
+                    {appwriteStatus?.auth.error && (
+                      <div className="mt-4 flex items-start gap-2 rounded-lg border border-red-900/60 bg-red-950/30 px-3 py-2 text-[11px] text-red-200">
+                        <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+                        <span>{appwriteStatus.auth.error}</span>
+                      </div>
+                    )}
+                    {identityState?.error && (
+                      <div className="mt-4 flex items-start gap-2 rounded-lg border border-red-900/60 bg-red-950/30 px-3 py-2 text-[11px] text-red-200">
+                        <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+                        <span>{identityState.error}</span>
+                      </div>
+                    )}
+                  </div>
                   <div className="grid gap-4 md:grid-cols-2">
                     <EnvironmentCard
                       title="APP_URL"
@@ -901,19 +1415,10 @@ export function SettingsModal() {
                       title="Disable HMR"
                       value={resolvedConfig?.env.disable_hmr ? "true" : "false"}
                     />
-                    <EnvironmentCard
-                      title="External Providers"
-                      value="Disabled"
-                      tone="warning"
-                    />
-                    <EnvironmentCard
-                      title="Active Workspace"
-                      value={currentWorkspace?.name ?? "None"}
-                    />
                   </div>
-                  {envWarnings.length > 0 && (
+                  {combinedEnvWarnings.length > 0 && (
                     <div className="space-y-2">
-                      {envWarnings.map((warning) => (
+                      {combinedEnvWarnings.map((warning) => (
                         <div
                           key={warning}
                           className="flex items-start gap-2 rounded-lg border border-amber-900/50 bg-amber-950/30 px-3 py-2 text-[11px] text-amber-200"
@@ -1048,6 +1553,26 @@ function StatusBadge({ status }: { status: McpServer["status"] }) {
   );
 }
 
+function IntegrationStatusBadge({
+  status,
+}: {
+  status: AppwriteIntegrationStatus["status"];
+}) {
+  const styles = {
+    disabled: "border-zinc-700 text-zinc-500",
+    incomplete: "border-amber-700/50 bg-amber-950/30 text-amber-200",
+    configured: "border-blue-700/50 bg-blue-950/30 text-blue-200",
+    ready: "border-emerald-700/50 bg-emerald-950/30 text-emerald-200",
+    error: "border-red-700/50 bg-red-950/30 text-red-200",
+  } as const;
+
+  return (
+    <Badge variant="outline" className={`text-[10px] ${styles[status]}`}>
+      {status}
+    </Badge>
+  );
+}
+
 function EnvironmentCard({
   title,
   value,
@@ -1055,13 +1580,15 @@ function EnvironmentCard({
 }: {
   title: string;
   value: string;
-  tone?: "default" | "success" | "warning";
+  tone?: "default" | "success" | "warning" | "danger";
 }) {
   const toneClass =
     tone === "success"
       ? "border-emerald-800/60 bg-emerald-950/20"
       : tone === "warning"
         ? "border-amber-800/60 bg-amber-950/20"
+        : tone === "danger"
+          ? "border-red-800/60 bg-red-950/20"
         : "border-zinc-800 bg-zinc-950/60";
 
   return (

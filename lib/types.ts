@@ -128,19 +128,78 @@ export type PanelDensity = "compact" | "comfortable";
 
 export type AssistantResponseStyle = "concise" | "balanced" | "detailed";
 
-export type AiProviderId =
-  | "local-stub"
-  | "anthropic"
-  | "gemini"
-  | "openai"
-  | "ollama";
-
-export type ProviderStatus =
+export type AppwriteIntegrationState =
   | "disabled"
-  | "unconfigured"
+  | "incomplete"
   | "configured"
   | "ready"
   | "error";
+
+export type AppwriteCapabilityState =
+  | "disabled"
+  | "incomplete"
+  | "ready"
+  | "error";
+
+export type AppwriteConnectionStatus =
+  | "unchecked"
+  | "reachable"
+  | "unreachable";
+
+export type AppwriteAuthMode = "off" | "anonymous";
+
+export interface AppwriteAuthCapability {
+  mode: AppwriteAuthMode;
+  enabled: boolean;
+  configured: boolean;
+  status: AppwriteCapabilityState;
+  warnings: string[];
+  error: string | null;
+}
+
+export interface AppwriteIntegrationStatus {
+  enabled: boolean;
+  can_probe: boolean;
+  status: AppwriteIntegrationState;
+  connection_status: AppwriteConnectionStatus;
+  endpoint: string | null;
+  project_id: string | null;
+  has_api_key: boolean;
+  latency_ms: number | null;
+  auth: AppwriteAuthCapability;
+  warnings: string[];
+  error: string | null;
+}
+
+export type RemoteIdentityMode = "local" | "appwrite";
+
+export type RemoteIdentityStatus =
+  | "local"
+  | "disabled"
+  | "incomplete"
+  | "ready"
+  | "connected"
+  | "error";
+
+export interface RemoteIdentityUser {
+  id: string;
+  label: string;
+  email: string | null;
+  created_at: string | null;
+}
+
+export interface RemoteIdentityState {
+  mode: RemoteIdentityMode;
+  status: RemoteIdentityStatus;
+  available: boolean;
+  connected: boolean;
+  session_kind: "none" | "appwrite-managed-guest";
+  session_id: string | null;
+  message: string;
+  user: RemoteIdentityUser | null;
+  warnings: string[];
+  error: string | null;
+}
 
 export interface AppSettings {
   default_mode: SessionMode;
@@ -152,9 +211,6 @@ export interface AppSettings {
   assistant_response_style: AssistantResponseStyle;
   accent_color?: string | null;
   auto_artifact_snapshots?: boolean | null;
-  provider?: AiProviderId | null;
-  provider_model?: string | null;
-  provider_base_url?: string | null;
 }
 
 export interface WorkspaceSettings {
@@ -167,26 +223,18 @@ export interface WorkspaceSettings {
   assistant_response_style: AssistantResponseStyle | null;
   accent_color: string | null;
   auto_artifact_snapshots: boolean | null;
-  provider?: AiProviderId | null;
-  provider_model?: string | null;
-  provider_base_url?: string | null;
 }
 
 export interface EffectiveWorkspaceConfig extends AppSettings {
   accent_color: string;
   auto_artifact_snapshots: boolean;
-  provider?: AiProviderId | null;
-  provider_model?: string | null;
-  provider_base_url?: string | null;
 }
 
 export interface EnvironmentStatus {
   app_url: string | null;
   app_url_valid: boolean;
   disable_hmr: boolean;
-  providers_enabled: boolean;
-  provider_status: ProviderStatus;
-  provider?: AiProviderId | null;
+  appwrite: AppwriteIntegrationStatus;
   warnings: string[];
 }
 

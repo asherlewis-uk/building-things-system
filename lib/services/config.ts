@@ -1,4 +1,5 @@
 import { getDb } from "@/lib/db";
+import { readAppwriteIntegrationStatus } from "@/lib/integrations/appwrite/server";
 import type {
   AppSettings,
   AssistantResponseStyle,
@@ -49,6 +50,11 @@ function isResponseStyle(value: unknown): value is AssistantResponseStyle {
 
 function asString(value: unknown) {
   return typeof value === "string" ? value.trim() : "";
+}
+
+function isTruthyEnvFlag(value: string | undefined) {
+  const normalizedValue = value?.trim().toLowerCase();
+  return normalizedValue === "true" || normalizedValue === "1";
 }
 
 function clampNumber(
@@ -170,6 +176,7 @@ export function normalizeWorkspaceSettings(input: unknown): WorkspaceSettings {
 export function readEnvironmentStatus(): EnvironmentStatus {
   const warnings: string[] = [];
   const appUrl = asString(process.env.APP_URL) || null;
+  const appwrite = readAppwriteIntegrationStatus();
   let appUrlValid = false;
 
   if (appUrl) {
@@ -184,9 +191,8 @@ export function readEnvironmentStatus(): EnvironmentStatus {
   return {
     app_url: appUrl,
     app_url_valid: appUrlValid,
-    disable_hmr: process.env.DISABLE_HMR === "true",
-    providers_enabled: false,
-    provider_status: "disabled",
+    disable_hmr: isTruthyEnvFlag(process.env.DISABLE_HMR),
+    appwrite,
     warnings,
   };
 }
@@ -275,6 +281,27 @@ export async function updateWorkspaceSettings(
   );
 
   return nextSettings;
+}
+
+export async function applyConfigPatch(
+  workspaceId: string,
+  patch: {
+    app?: Record<string, unknown>;
+    workspace?: Record<string, unknown>;
+  },
+) {
+  if (patch.app && typeof patch.app === "object") {
+    await updateAppSettings(patch.app as Partial<AppSettings>);
+  }
+
+  if (patch.workspace && typeof patch.workspace === "object") {
+    await updateWorkspaceSettings(
+      workspaceId,
+      patch.workspace as Partial<WorkspaceSettings>,
+    );
+  }
+
+  return getResolvedConfig(workspaceId);
 }
 
 export async function getResolvedConfig(
